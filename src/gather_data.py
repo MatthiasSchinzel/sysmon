@@ -79,28 +79,28 @@ class sysinfo:
         idled = Idle - PrevIdle
         self.cpu_load = (totald - idled)/totald
 
-    def refresh_stats(self,):
+    def refresh_stat(self,):
         self.read_file('stat')
         self.parse_stat()
         self.process_stat()
         return self.cpu_load
 
 
-s = sysinfo()
-print(s.cpu_core_count)
-print(s.refresh_stats())
-
-dat = s.refresh_stats()[0]
-
-fig = plt.figure()
-ax = fig.add_subplot(111)
-Ln, = ax.plot(dat)
-ax.set_xlim([0, 100])
-ax.set_ylim([0, 1])
-plt.ion()
-plt.show()
-while True:
-    dat = np.append(dat, s.refresh_stats()[0])
-    Ln.set_ydata(dat)
-    Ln.set_xdata(range(len(dat)))
-    plt.pause(0.5)
+# s = sysinfo()
+# print(s.cpu_core_count)
+# print(s.refresh_stat())
+#
+# dat = s.refresh_stat()[0]
+#
+# fig = plt.figure()
+# ax = fig.add_subplot(111)
+# Ln, = ax.plot(dat)
+# ax.set_xlim([0, 100])
+# ax.set_ylim([0, 1])
+# plt.ion()
+# plt.show()
+# while True:
+#     dat = np.append(dat, s.refresh_stat()[0])
+#     Ln.set_ydata(dat)
+#     Ln.set_xdata(range(len(dat)))
+#     plt.pause(0.5)
