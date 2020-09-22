@@ -1,5 +1,4 @@
 import numpy as np
-import matplotlib.pyplot as plt
 
 
 class sysinfo:
@@ -84,23 +83,3 @@ class sysinfo:
         self.parse_stat()
         self.process_stat()
         return self.cpu_load
-
-
-# s = sysinfo()
-# print(s.cpu_core_count)
-# print(s.refresh_stat())
-#
-# dat = s.refresh_stat()[0]
-#
-# fig = plt.figure()
-# ax = fig.add_subplot(111)
-# Ln, = ax.plot(dat)
-# ax.set_xlim([0, 100])
-# ax.set_ylim([0, 1])
-# plt.ion()
-# plt.show()
-# while True:
-#     dat = np.append(dat, s.refresh_stat()[0])
-#     Ln.set_ydata(dat)
-#     Ln.set_xdata(range(len(dat)))
-#     plt.pause(0.5)
