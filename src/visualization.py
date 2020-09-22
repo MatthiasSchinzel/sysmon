@@ -7,9 +7,10 @@ from scipy.interpolate import interp1d
 
 
 s = sysinfo()
-len_data = 500
+wait_time_ms = 100
+len_data = 600
 xnew = np.linspace(0, len_data, num=5*len_data, endpoint=True)
-x = np.linspace(0, len_data, num=len_data, endpoint=True)
+x = np.linspace(-len_data*wait_time_ms/1000, 0, num=len_data, endpoint=True)
 data = np.zeros([len_data, ])
 #QtGui.QApplication.setGraphicsSystem('raster')
 app = QtGui.QApplication([])
@@ -25,25 +26,26 @@ pg.setConfigOptions(antialias=True)
 
 p6 = win.addPlot(title="CPU load [%]")
 curve = p6.plot(pen=pg.mkPen('g', width=2))
-data[-1] = s.refresh_stat()[0]
+data[-1] = s.refresh_stat()[0] * 100
+p6.setLabel('bottom', "Seconds")
 ptr = 0
-p6.setXRange(0, len_data, padding=0)
-p6.setYRange(0, 1, padding=0)
+p6.setXRange(-len_data*wait_time_ms/1000, 0, padding=0)
+p6.setYRange(0, 100, padding=0)
 
 
 def update():
     global curve, data, ptr, p6
     data = np.roll(data, -1)
-    data[-1] = s.refresh_stat()[0]
+    data[-1] = s.refresh_stat()[0] * 100
     #f2 = interp1d(x, data, kind='slinear')
     #curve.setData(xnew, f2(xnew))
-    curve.setData(data)
+    curve.setData(x, data)
     if ptr == 0:
         p6.enableAutoRange('xy', False)  ## stop auto-scaling after the first data set is plotted
     ptr += 1
 timer = QtCore.QTimer()
 timer.timeout.connect(update)
-timer.start(100)
+timer.start(wait_time_ms)
 
 
 ## Start Qt event loop unless running in interactive mode or using pyside.
