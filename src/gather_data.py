@@ -20,6 +20,10 @@ class sysinfo:
         self.guest = np.zeros([self.cpu_core_count+1, 2])
         self.guest_nice = np.zeros([self.cpu_core_count+1, 2])
         self.cpu_load = 0
+        self.memtotal = 0
+        self.memfree = 0
+        self.swaptotal = 0
+        self.swapfree = 0
 
     def read_file(self, type):
         with open('/proc/' + type, 'r') as reader:
@@ -78,8 +82,28 @@ class sysinfo:
         idled = Idle - PrevIdle
         self.cpu_load = (totald - idled)/totald
 
+    def parse_meminfo(self,):
+        for line in self.lines:
+            if "MemTotal" in line:
+                cur_data = self.lines[cpu].split()
+                self.memtotal = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+            if "MemFree" in line:
+                cur_data = self.lines[cpu].split()
+                self.memfree = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+            if "SwapTotal" in line:
+                cur_data = self.lines[cpu].split()
+                self.swaptotal = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+            if "SwapFree" in line:
+                cur_data = self.lines[cpu].split()
+                self.swapfree = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+
     def refresh_stat(self,):
         self.read_file('stat')
         self.parse_stat()
         self.process_stat()
         return self.cpu_load
+
+    def refresh_memory(self,):
+        self.read_file('meminfo')
+        self.parse_meminfo()
+        return self.memtotal, self.memfree, self.swaptotal, self.swapfree
