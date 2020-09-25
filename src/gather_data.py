@@ -1,8 +1,21 @@
 import numpy as np
+from pathlib import Path
+
+
+class NoCPUInformation(Exception):
+    pass
+
+
+class NoMemoryInformation(Exception):
+    pass
 
 
 class sysinfo:
     def __init__(self,):
+        if not Path('/proc/stat').is_file():
+            raise NoCPUInformation('/proc/stat does not exist. Maybe you use a virtual machine?')
+        if not Path('/proc/meminfo').is_file():
+            raise NoMemoryInformation('/proc/meminfo does not exist.')
         self.lines = []
         self.cpu_core_count = 0
         self.previdle = 0
