@@ -85,17 +85,17 @@ class sysinfo:
     def parse_meminfo(self,):
         for line in self.lines:
             if "MemTotal" in line:
-                cur_data = self.lines[cpu].split()
-                self.memtotal = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+                cur_data = line.split()
+                self.memtotal = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
             if "MemFree" in line:
-                cur_data = self.lines[cpu].split()
-                self.memfree = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+                cur_data = line.split()
+                self.memfree = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
             if "SwapTotal" in line:
-                cur_data = self.lines[cpu].split()
-                self.swaptotal = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+                cur_data = line.split()
+                self.swaptotal = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
             if "SwapFree" in line:
-                cur_data = self.lines[cpu].split()
-                self.swapfree = int(cur_data[1]) * 9.537 * 10 ^ (-7)
+                cur_data = line.split()
+                self.swapfree = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
 
     def refresh_stat(self,):
         self.read_file('stat')
