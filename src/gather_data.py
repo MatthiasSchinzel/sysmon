@@ -99,16 +99,24 @@ class sysinfo:
         for line in self.lines:
             if "MemTotal" in line:
                 cur_data = line.split()
-                self.memtotal = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
+                self.memtotal = int(cur_data[1])
             if "MemFree" in line:
                 cur_data = line.split()
-                self.memfree = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
+                self.memfree = int(cur_data[1])
             if "SwapTotal" in line:
                 cur_data = line.split()
-                self.swaptotal = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
+                self.swaptotal = int(cur_data[1])
             if "SwapFree" in line:
                 cur_data = line.split()
-                self.swapfree = float(int(cur_data[1]) * 9.537 * 10.0 ** -7)
+                self.swapfree = int(cur_data[1])
+            if "Buffers" in line:
+                cur_data = line.split()
+                self.buffers = int(cur_data[1])
+            if "Cached" in line:
+                if "SwapCached" not in line:
+                    cur_data = line.split()
+                    self.cached = int(cur_data[1])
+
 
     def refresh_stat(self,):
         self.read_file('stat')
@@ -119,4 +127,5 @@ class sysinfo:
     def refresh_memory(self,):
         self.read_file('meminfo')
         self.parse_meminfo()
-        return self.memtotal, self.memfree, self.swaptotal, self.swapfree
+        self.non_cached = self.memtotal - self.memfree - (self.buffers + self.cached)
+        return self.memtotal, self.non_cached, self.swaptotal, self.swapfree
