@@ -1,5 +1,6 @@
 import numpy as np
 from pathlib import Path
+import subprocess
 
 
 class NoCPUInformation(Exception):
@@ -117,6 +118,15 @@ class sysinfo:
                     cur_data = line.split()
                     self.cached = int(cur_data[1])
 
+    def get_running_processes(self,):
+        ps = str(subprocess.Popen(['ps', 'aux', '--sort=-pcpu'], stdout=subprocess.PIPE).communicate()[0])
+        processes = ps.split('\\n')
+        processes.pop(0)
+        processes.pop(-1)
+        process = []
+        for cur_process in processes:
+            process.append([j for j in cur_process.split(maxsplit=10)])
+        return process
 
     def refresh_stat(self,):
         self.read_file('stat')

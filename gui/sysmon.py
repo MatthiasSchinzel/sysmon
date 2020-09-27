@@ -1,9 +1,10 @@
 from PyQt5 import QtWidgets, uic
 import pyqtgraph as pg
 import sys
-from gather_data import sysinfo
 import numpy as np
-from pyqtgraph.Qt import QtCore
+from pyqtgraph.Qt import QtCore, QtGui
+sys.path.insert(0, '../src/')
+from gather_data import sysinfo
 # from sysmonitor import Ui_MainWindow
 
 
@@ -26,6 +27,16 @@ class MainWindow(QtWidgets.QMainWindow):
                              num=self.len_data, endpoint=True)
         self.plot_meminfo()
         self.plot_cpuinfo()
+        self.headertitle = ('USER', 'PID', 'CPU [%]', 'MEM [%]', 'VSZ', 'RSS', 'TTY', 'STAT', 'START', 'TIME', 'COMMAND')
+        self.tableWidget.verticalHeader().setVisible(False)
+        self.tableWidget.horizontalHeader().setHighlightSections(False)
+        self.update_running_processes()
+        self.timer_3 = QtCore.QTimer()
+        self.timer_3.timeout.connect(self.update_running_processes)
+        self.timer_3.start(self.wait_time_ms)
+        # self.tableWidget.setRowCount(4096)
+        # self.tableWidget.setColumnCount(5)
+        # self.tableWidget.setHorizontalHeaderLabels(headertitle)
 
     def plot_cpuinfo(self,):
         counter = 0
@@ -103,6 +114,20 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cpuinfo[-1, :] = self.s.refresh_stat() * 100
         for cpu in range(self.s.cpu_core_count):
             self.cpu_curve[cpu].setData(self.x, self.cpuinfo[:, cpu+1])
+
+    def update_running_processes(self,):
+        data = self.s.get_running_processes()
+        numcols = len(data[0])
+        numrows = len(data)
+        self.tableWidget.setColumnCount(numcols)
+        self.tableWidget.setRowCount(numrows)
+        for row in range(numrows):
+            for column in range(numcols):
+                self.tableWidget.setItem(row, column,
+                                         QtGui.QTableWidgetItem(data[row]
+                                                                [column]))
+        self.tableWidget.setHorizontalHeaderLabels(self.headertitle)
+        # self.tableWidget.sortItems(2, QtCore.Qt.DescendingOrder)
 
 def main():
     app = QtWidgets.QApplication(sys.argv)
