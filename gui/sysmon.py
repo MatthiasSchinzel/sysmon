@@ -37,6 +37,11 @@ class MainWindow(QtWidgets.QMainWindow):
         # self.tableWidget.setRowCount(4096)
         # self.tableWidget.setColumnCount(5)
         # self.tableWidget.setHorizontalHeaderLabels(headertitle)
+        header = self.tableWidget.horizontalHeader()
+        header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        header.setStretchLastSection(True)
+        header.setResizeMode(False)
+        self.tableWidget.setSortingEnabled(True)
 
     def plot_cpuinfo(self,):
         counter = 0
@@ -66,6 +71,26 @@ class MainWindow(QtWidgets.QMainWindow):
             else:
                 counter += 1
 
+        p.append(self.widget_5.addPlot())
+        p[-1].setXRange(-self.len_data*self.wait_time_ms/1000, 0, padding=0)
+        p[-1].setYRange(0, 100, padding=0)
+        p[-1].enableAutoRange('xy', False)
+        p[-1].showAxis('top', show=True)
+        p[-1].showAxis('right', show=True)
+        p[-1].axes['bottom']['item'].setStyle(showValues=True)
+        p[-1].axes['top']['item'].setStyle(showValues=False)
+        p[-1].axes['left']['item'].setStyle(showValues=False)
+        p[-1].axes['right']['item'].setStyle(showValues=True)
+        p[-1].axes['right']['item'].setGrid(100)
+        p[-1].axes['top']['item'].setGrid(100)
+        p[-1].setLabel('right', "[%]")
+        p[-1].setLabel('bottom', "Seconds")
+        p[-1].setMouseEnabled(x=False, y=False)
+        p[-1].hideButtons()
+        p[-1].setMenuEnabled(False)
+        self.cpu_curve .append(p[-1].plot(pen=pg.mkPen('b', width=1),
+                     fillLevel=-0.3, brush=(50, 50, 200, 50)))
+
         self.update_cpuinfo()
         self.timer_2 = QtCore.QTimer()
         self.timer_2.timeout.connect(self.update_cpuinfo)
@@ -83,12 +108,13 @@ class MainWindow(QtWidgets.QMainWindow):
         p[-1].enableAutoRange('xy', False)
         p[-1].showAxis('top', show=True)
         p[-1].showAxis('right', show=True)
-        p[-1].axes['bottom']['item'].setStyle(showValues=False)
+        p[-1].axes['bottom']['item'].setStyle(showValues=True)
         p[-1].axes['top']['item'].setStyle(showValues=False)
         p[-1].axes['left']['item'].setStyle(showValues=False)
-        p[-1].axes['right']['item'].setStyle(showValues=False)
+        p[-1].axes['right']['item'].setStyle(showValues=True)
         p[-1].axes['right']['item'].setGrid(100)
         p[-1].axes['top']['item'].setGrid(100)
+        p[-1].setLabel('bottom', "Seconds")
         p[-1].setMouseEnabled(x=False, y=False)
         p[-1].hideButtons()
         p[-1].setMenuEnabled(False)
@@ -114,6 +140,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cpuinfo[-1, :] = self.s.refresh_stat() * 100
         for cpu in range(self.s.cpu_core_count):
             self.cpu_curve[cpu].setData(self.x, self.cpuinfo[:, cpu+1])
+        self.cpu_curve[cpu+1].setData(self.x, self.cpuinfo[:, 0])
 
     def update_running_processes(self,):
         data = self.s.get_running_processes()
@@ -123,9 +150,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setRowCount(numrows)
         for row in range(numrows):
             for column in range(numcols):
-                self.tableWidget.setItem(row, column,
-                                         QtGui.QTableWidgetItem(data[row]
-                                                                [column]))
+                if column == 1 or column == 2 or column == 3 or column == 4  or column == 5:
+                    item = QtWidgets.QTableWidgetItem()
+                    item.setData(QtCore.Qt.DisplayRole, float(data[row][column]))
+                    self.tableWidget.setItem(row, column,
+                                             QtGui.QTableWidgetItem(item))
+                else:
+                    self.tableWidget.setItem(row, column,
+                                             QtGui.QTableWidgetItem(data[row]
+                                                                    [column]))
         self.tableWidget.setHorizontalHeaderLabels(self.headertitle)
         # self.tableWidget.sortItems(2, QtCore.Qt.DescendingOrder)
 

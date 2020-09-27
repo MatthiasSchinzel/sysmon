@@ -1,6 +1,7 @@
 import numpy as np
 from pathlib import Path
 import subprocess
+import getpass
 
 
 class NoCPUInformation(Exception):
@@ -38,6 +39,7 @@ class sysinfo:
         self.memfree = 0
         self.swaptotal = 0
         self.swapfree = 0
+        self.username = getpass.getuser()
 
     def read_file(self, type):
         with open('/proc/' + type, 'r') as reader:
@@ -118,14 +120,20 @@ class sysinfo:
                     cur_data = line.split()
                     self.cached = int(cur_data[1])
 
-    def get_running_processes(self,):
+    def get_running_processes(self, only_usr=True):
         ps = str(subprocess.Popen(['ps', 'aux', '--sort=-pcpu'], stdout=subprocess.PIPE).communicate()[0])
         processes = ps.split('\\n')
         processes.pop(0)
         processes.pop(-1)
         process = []
         for cur_process in processes:
-            process.append([j for j in cur_process.split(maxsplit=10)])
+            cur_list = cur_process.split(maxsplit=10)
+            if cur_list[0] == self.username and only_usr is True:
+                process.append(cur_list)
+                process[-1][2] = round(float(process[-1][2])/self.cpu_core_count, 1)
+            elif only_usr is False:
+                process.append(cur_list)
+                process[-1][2] = round(float(process[-1][2])/self.cpu_core_count, 1)
         return process
 
     def refresh_stat(self,):
