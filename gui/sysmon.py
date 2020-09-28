@@ -131,9 +131,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.meminfo = np.roll(self.meminfo, -1, axis=0)
         memtotal, memoccup, swaptotal, swapfree = self.s.refresh_memory()
         self.meminfo[-1, :] = np.array([(memoccup)/memtotal,
-                                        (swapfree - swapfree)/swaptotal]) * 100
+                                        (swaptotal - swapfree)/swaptotal]) * 100
         self.mem_curve[0].setData(self.x, self.meminfo[:, 0])
         self.mem_curve[1].setData(self.x, self.meminfo[:, 1])
+        self.label_5.setText('Memory: ' + str(round(memoccup/1048576, 1)) + 'GiB of ' + str(round(memtotal/1048576, 1)) + 'GiB used (' + str(round(self.meminfo[-1, 0], 1)) + '%)')
+        self.label_6.setText('Swap: ' + str(round((swaptotal - swapfree)/1048576, 1)) + 'GiB of ' + str(round(swaptotal/1048576, 1)) + 'GiB used (' + str(round(self.meminfo[-1, 1], 1)) + '%)')
+
 
     def update_cpuinfo(self,):
         self.cpuinfo = np.roll(self.cpuinfo, -1, axis=0)
@@ -141,6 +144,8 @@ class MainWindow(QtWidgets.QMainWindow):
         for cpu in range(self.s.cpu_core_count):
             self.cpu_curve[cpu].setData(self.x, self.cpuinfo[:, cpu+1])
         self.cpu_curve[cpu+1].setData(self.x, self.cpuinfo[:, 0])
+        self.label_3.setText('Overall usage: ' + str(round(self.cpuinfo[-1, 0], 1)) + '%')
+        self.label_7.setText(str(round(self.cpuinfo[-1, 0], 1)) + '%')
 
     def update_running_processes(self,):
         data = self.s.get_running_processes()
