@@ -7,5 +7,3 @@ processes.pop(-1)
 process = []
 for cur_process in processes:
     process.append([j for j in cur_process.split(maxsplit = 10)])
-
-process[400]
