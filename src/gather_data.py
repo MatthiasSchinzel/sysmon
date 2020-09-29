@@ -40,6 +40,12 @@ class sysinfo:
         self.swaptotal = 0
         self.swapfree = 0
         self.username = getpass.getuser()
+        self.nvidia_installed = 0
+        self.gpu_num = 0
+        self.gpu_name = []
+        self.check_for_nvidia_smi()
+        if self.nvidia_installed == 1:
+            self.get_basic_info_nvidia_smi()
 
     def read_file(self, type):
         with open('/proc/' + type, 'r') as reader:
@@ -126,15 +132,57 @@ class sysinfo:
         processes.pop(0)
         processes.pop(-1)
         process = []
+        counter = 0
+        max = 50
         for cur_process in processes:
             cur_list = cur_process.split(maxsplit=10)
+            cur_list.pop(4)
+            cur_list.pop(4)
+            cur_list.pop(4)
+            cur_list.pop(4)
             if cur_list[0] == self.username and only_usr is True:
                 process.append(cur_list)
                 process[-1][2] = round(float(process[-1][2])/self.cpu_core_count, 1)
             elif only_usr is False:
                 process.append(cur_list)
                 process[-1][2] = round(float(process[-1][2])/self.cpu_core_count, 1)
+            if counter > max:
+                break
+            counter += 1
         return process
+
+    def check_for_nvidia_smi(self,):
+        ps = str(subprocess.Popen(['command -v nvidia-smi'],
+                                  stdout=subprocess.PIPE,
+                                  shell=True).communicate()[0].decode("utf-8"))
+        processes = ps.strip('\n')
+        if processes:
+            self.nvidia_installed = 1
+
+    def get_basic_info_nvidia_smi(self,):
+        ps = str(subprocess.Popen(['nvidia-smi', '-L'],
+                                  stdout=subprocess.PIPE).communicate()[0].decode("utf-8"))
+        processes = ps.split('\n')
+        processes.pop(-1)
+        id = 0
+        self.gpu_num = len(processes)
+        for gpu in processes:
+            gpu = gpu.replace('GPU ' + str(id) + ': ', '')
+            gpu = gpu.split('(')
+            self.gpu_name.append(gpu[0].rstrip())
+            id += 1
+
+    def get_nvidia_smi_info(self,):
+        ps = str(subprocess.Popen(['nvidia-smi', 'dmon', '-c', '1'],
+                                  stdout=subprocess.PIPE).communicate()[0])
+        processes = ps.split('\\n')
+        processes.pop(0)
+        processes.pop(0)
+        processes.pop(-1)
+        smi_info = []
+        for cur_process in processes:
+            smi_info.append([j for j in cur_process.split(maxsplit=9)])
+        return smi_info
 
     def refresh_stat(self,):
         self.read_file('stat')
