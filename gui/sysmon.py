@@ -27,7 +27,7 @@ class MainWindow(QtWidgets.QMainWindow):
                              num=self.len_data, endpoint=True)
         self.plot_meminfo()
         self.plot_cpuinfo()
-        self.headertitle = ('USER', 'PID', 'CPU [%]', 'MEM [%]', 'VSZ', 'RSS', 'TTY', 'STAT', 'START', 'TIME', 'COMMAND')
+        self.headertitle = ('USER', 'PID', 'CPU [%]', 'MEM [%]', 'START', 'TIME', 'COMMAND')
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.horizontalHeader().setHighlightSections(False)
         self.update_running_processes()
@@ -41,7 +41,25 @@ class MainWindow(QtWidgets.QMainWindow):
         header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         header.setStretchLastSection(True)
         header.setResizeMode(False)
-        self.tableWidget.setSortingEnabled(True)
+        self.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
+        # self.tableWidget.setSortingEnabled(True)
+        self.tableWidget.setShowGrid(False)
+        if self.s.nvidia_installed == 1:
+            for gpu_ind in range(self.s.gpu_num):
+                self.tab_3 = QtWidgets.QWidget()
+                self.tabWidget.addTab(self.tab_3, self.s.gpu_name[gpu_ind])
+                vbox = QtGui.QVBoxLayout(self.tab_3)
+                self.widget_99 = QtWidgets.QWidget()
+                hbox = QtGui.QHBoxLayout(self.widget_99)
+                self.widget_10 = QtGui.QLabel("Widget in Tab 2.") # pg.GraphicsLayoutWidget()
+                self.widget_11 = QtGui.QLabel("Widget in Tab 2.") #pg.GraphicsLayoutWidget()
+                vbox.addWidget(self.widget_99)
+                vbox.addWidget(self.widget_10)
+                vbox.addWidget(self.widget_11)
+                self.label_99 = QtGui.QLabel("Widget in Tab 2.") # pg.GraphicsLayoutWidget()
+                self.label_98 = QtGui.QLabel("Widget in Tab 2.") #pg.GraphicsLayoutWidget()
+                hbox.addWidget(self.label_99)
+                hbox.addWidget(self.label_98)
 
     def plot_cpuinfo(self,):
         counter = 0
@@ -148,14 +166,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.label_7.setText(str(round(self.cpuinfo[-1, 0], 1)) + '%')
 
     def update_running_processes(self,):
-        data = self.s.get_running_processes()
+        data = self.s.get_running_processes(only_usr=False)
         numcols = len(data[0])
         numrows = len(data)
         self.tableWidget.setColumnCount(numcols)
         self.tableWidget.setRowCount(numrows)
         for row in range(numrows):
             for column in range(numcols):
-                if column == 1 or column == 2 or column == 3 or column == 4  or column == 5:
+                if column == 1 or column == 2 or column == 3:
                     item = QtWidgets.QTableWidgetItem()
                     item.setData(QtCore.Qt.DisplayRole, float(data[row][column]))
                     self.tableWidget.setItem(row, column,
