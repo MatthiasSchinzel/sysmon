@@ -20,6 +20,8 @@ class sysinfo:
             raise NoMemoryInformation('/proc/meminfo does not exist.')
         self.lines = []
         self.cpu_core_count = 0
+        self.pysical_cpu_core_count = 0
+        self.cpu_model_name = []
         self.previdle = 0
         self.previowait = 0
         self.read_file('stat')
@@ -34,6 +36,7 @@ class sysinfo:
         self.steal = np.zeros([self.cpu_core_count+1, 2])
         self.guest = np.zeros([self.cpu_core_count+1, 2])
         self.guest_nice = np.zeros([self.cpu_core_count+1, 2])
+        self.cpu_clock = np.zeros([self.cpu_core_count, ])
         self.cpu_load = 0
         self.memtotal = 0
         self.memfree = 0
@@ -46,6 +49,7 @@ class sysinfo:
         self.check_for_nvidia_smi()
         if self.nvidia_installed == 1:
             self.get_basic_info_nvidia_smi()
+        self.get_cpuinfo()
 
     def read_file(self, type):
         with open('/proc/' + type, 'r') as reader:
@@ -164,13 +168,11 @@ class sysinfo:
                                   stdout=subprocess.PIPE).communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(-1)
-        id = 0
         self.gpu_num = len(processes)
-        for gpu in processes:
+        for id, gpu in enumerate(processes):
             gpu = gpu.replace('GPU ' + str(id) + ': ', '')
             gpu = gpu.split('(')
             self.gpu_name.append(gpu[0].rstrip())
-            id += 1
 
     def get_nvidia_smi_info(self,):
         ps = str(subprocess.Popen(['nvidia-smi', 'dmon', '-c', '1'],
@@ -184,10 +186,33 @@ class sysinfo:
             smi_info.append([j for j in cur_process.split(maxsplit=9)])
         return smi_info
 
+    def get_cpu_clock_speed(self,):
+        ps = str(subprocess.Popen(['cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        processes = ps.split('\n')
+        processes.pop(-1)
+        for id, process in enumerate(processes):
+            self.cpu_clock[id] = int(process)
+
+    def parse_cpuinfo(self,):
+        for line in self.lines:
+            if "model name" in line:
+                # cur_data = line.split(maxsplit=1)
+                line = line.replace('model name', '')
+                line = line.replace(':', '')
+                self.cpu_model_name = line
+            if "cpu cores" in line:
+                cur_data = line.split()
+                self.pysical_cpu_core_count = cur_data[-1]
+
+    def get_cpuinfo(self,):
+        self.read_file('cpuinfo')
+        self.parse_cpuinfo()
+
     def refresh_stat(self,):
         self.read_file('stat')
         self.parse_stat()
         self.process_stat()
+        self.get_cpu_clock_speed()
         return self.cpu_load
 
     def refresh_memory(self,):
