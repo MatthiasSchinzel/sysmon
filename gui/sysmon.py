@@ -19,12 +19,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.len_data = 60
         self.cpu_curve = []
         self.mem_curve = []
+        self.ti = []
         self.wait_time_ms = 1000
         self.s = sysinfo()
         self.meminfo = np.zeros([self.len_data, 2])
         self.cpuinfo = np.zeros([self.len_data, self.s.cpu_core_count+1])
         self.x = np.linspace(-self.len_data*self.wait_time_ms/1000, 0,
                              num=self.len_data, endpoint=True)
+        self.label_8.setText(self.s.cpu_model_name)
         self.plot_meminfo()
         self.plot_cpuinfo()
         self.headertitle = ('USER', 'PID', 'CPU [%]', 'MEM [%]', 'START', 'TIME', 'COMMAND')
@@ -81,7 +83,10 @@ class MainWindow(QtWidgets.QMainWindow):
             p[-1].setMouseEnabled(x=False, y=False)
             p[-1].hideButtons()
             p[-1].setMenuEnabled(False)
-            self.cpu_curve .append(p[-1].plot(pen=pg.mkPen('b', width=1),
+            self.ti.append(pg.TextItem(str(round(self.s.cpu_clock[cpu]/1000000, 2)) + 'GHz', anchor=(0,0)))
+            self.ti[-1].setPos(-self.len_data*self.wait_time_ms/1000 , 100)
+            p[-1].addItem(self.ti[-1])
+            self.cpu_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
                          fillLevel=-0.3, brush=(50, 50, 200, 50)))
             if counter == 3:
                 self.widget_2.nextRow()
@@ -161,6 +166,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cpuinfo[-1, :] = self.s.refresh_stat() * 100
         for cpu in range(self.s.cpu_core_count):
             self.cpu_curve[cpu].setData(self.x, self.cpuinfo[:, cpu+1])
+            self.ti[cpu].setText(str(round(self.s.cpu_clock[cpu]/1000000, 2)) + 'GHz')
         self.cpu_curve[cpu+1].setData(self.x, self.cpuinfo[:, 0])
         self.label_3.setText('Overall usage: ' + str(round(self.cpuinfo[-1, 0], 1)) + '%')
         self.label_7.setText(str(round(self.cpuinfo[-1, 0], 1)) + '%')
