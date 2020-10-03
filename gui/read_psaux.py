@@ -26,3 +26,6 @@ for gpu in processes:
     gpu = gpu.split('(')
     gpu_name.append(gpu[0].rstrip())
     id += 1
+
+
+ps = str(subprocess.Popen(['cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
