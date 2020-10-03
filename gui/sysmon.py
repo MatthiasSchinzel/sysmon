@@ -166,7 +166,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cpuinfo[-1, :] = self.s.refresh_stat() * 100
         for cpu in range(self.s.cpu_core_count):
             self.cpu_curve[cpu].setData(self.x, self.cpuinfo[:, cpu+1])
-            self.ti[cpu].setText(str(round(self.s.cpu_clock[cpu]/1000000, 2)) + 'GHz')
+            self.ti[cpu].setText(str(int(self.cpuinfo[-1, cpu+1])) + '%\n' +
+                                 str(round(self.s.cpu_clock[cpu]/1000000, 2)) + 'GHz')
         self.cpu_curve[cpu+1].setData(self.x, self.cpuinfo[:, 0])
         self.label_3.setText('Overall usage: ' + str(round(self.cpuinfo[-1, 0], 1)) + '%')
         self.label_7.setText(str(round(self.cpuinfo[-1, 0], 1)) + '%')
