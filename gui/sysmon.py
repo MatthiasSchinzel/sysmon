@@ -19,6 +19,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.len_data = 60
         self.cpu_curve = []
         self.mem_curve = []
+        self.gpu_curve = []
         self.ti = []
         self.wait_time_ms = 1000
         self.s = sysinfo()
@@ -46,22 +47,110 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         # self.tableWidget.setSortingEnabled(True)
         self.tableWidget.setShowGrid(False)
+        # dynamically create gpu tabs
         if self.s.nvidia_installed == 1:
+            self.gpu_widgets = []
+            self.gpuinfo = np.zeros([self.len_data, 4, self.s.gpu_num])
             for gpu_ind in range(self.s.gpu_num):
-                self.tab_3 = QtWidgets.QWidget()
-                self.tabWidget.addTab(self.tab_3, self.s.gpu_name[gpu_ind])
-                vbox = QtGui.QVBoxLayout(self.tab_3)
-                self.widget_99 = QtWidgets.QWidget()
-                hbox = QtGui.QHBoxLayout(self.widget_99)
-                self.widget_10 = QtGui.QLabel("Widget in Tab 2.") # pg.GraphicsLayoutWidget()
-                self.widget_11 = QtGui.QLabel("Widget in Tab 2.") #pg.GraphicsLayoutWidget()
-                vbox.addWidget(self.widget_99)
-                vbox.addWidget(self.widget_10)
-                vbox.addWidget(self.widget_11)
-                self.label_99 = QtGui.QLabel("Widget in Tab 2.") # pg.GraphicsLayoutWidget()
-                self.label_98 = QtGui.QLabel("Widget in Tab 2.") #pg.GraphicsLayoutWidget()
-                hbox.addWidget(self.label_99)
-                hbox.addWidget(self.label_98)
+                tab_widgets = []
+                # first set vertical alignment of tab
+                tab = QtWidgets.QWidget()
+                self.tabWidget.addTab(tab, self.s.gpu_name[gpu_ind])
+                vbox = QtGui.QVBoxLayout(tab)
+
+                # then add widgets in horizontal layout
+                widget_1 = QtWidgets.QWidget()
+                widget_2 = QtWidgets.QWidget()
+                widget_3 = QtWidgets.QWidget()
+                widget_4 = QtWidgets.QWidget()
+                widget_5 = QtWidgets.QWidget()
+                vbox.addWidget(widget_1)
+                vbox.addWidget(widget_2)
+                vbox.addWidget(widget_3)
+                vbox.addWidget(widget_4)
+                vbox.addWidget(widget_5)
+                hbox_1 = QtGui.QHBoxLayout(widget_1)
+                hbox_2 = QtGui.QHBoxLayout(widget_2)
+                hbox_3 = QtGui.QHBoxLayout(widget_3)
+                hbox_4 = QtGui.QHBoxLayout(widget_4)
+                hbox_5 = QtGui.QHBoxLayout(widget_5)
+
+                label_1 = QtGui.QLabel("Gpu:") # pg.GraphicsLayoutWidget()
+                label_2 = QtGui.QLabel("Memory:") #pg.GraphicsLayoutWidget()
+                label_3 = QtGui.QLabel("Encoder:") # pg.GraphicsLayoutWidget()
+                label_4 = QtGui.QLabel("Decoder:") #pg.GraphicsLayoutWidget()
+                label_5 = QtGui.QLabel("Gpu clock:") # pg.GraphicsLayoutWidget()
+                label_6 = QtGui.QLabel("Memory clock:") #pg.GraphicsLayoutWidget()
+                hbox_1.addWidget(label_1)
+                hbox_1.addWidget(label_2)
+                hbox_3.addWidget(label_3)
+                hbox_3.addWidget(label_4)
+                hbox_5.addWidget(label_5)
+                hbox_5.addWidget(label_6)
+
+                graph_w_1 = pg.GraphicsLayoutWidget()
+                graph_w_2 = pg.GraphicsLayoutWidget()
+                graph_w_3 = pg.GraphicsLayoutWidget()
+                graph_w_4 = pg.GraphicsLayoutWidget()
+
+                hbox_2.addWidget(graph_w_1)
+                hbox_2.addWidget(graph_w_2)
+                hbox_4.addWidget(graph_w_3)
+                hbox_4.addWidget(graph_w_4)
+
+                # Append for later access
+                tab_widgets.append(tab)
+                tab_widgets.append(vbox)
+                tab_widgets.append(widget_1)
+                tab_widgets.append(widget_2)
+                tab_widgets.append(widget_3)
+                tab_widgets.append(widget_4)
+                tab_widgets.append(widget_5)
+                tab_widgets.append(hbox_1)
+                tab_widgets.append(hbox_2)
+                tab_widgets.append(hbox_3)
+                tab_widgets.append(hbox_4)
+                tab_widgets.append(hbox_5)
+                tab_widgets.append(label_1)
+                tab_widgets.append(label_2)
+                tab_widgets.append(label_3)
+                tab_widgets.append(label_4)
+                tab_widgets.append(label_5)
+                tab_widgets.append(label_6)
+                tab_widgets.append(graph_w_1)
+                tab_widgets.append(graph_w_2)
+                tab_widgets.append(graph_w_3)
+                tab_widgets.append(graph_w_4)
+                self.gpu_widgets.append(tab_widgets)
+            self.plot_gpuinfo()
+            self.update_gpuinfo()
+            self.timer_3 = QtCore.QTimer()
+            self.timer_3.timeout.connect(self.update_gpuinfo)
+            self.timer_3.start(self.wait_time_ms)
+
+    def plot_gpuinfo(self,):
+        p = []
+        for gpu_ind in range(self.s.gpu_num):
+            for i in range(1,5):
+                p.append(self.gpu_widgets[gpu_ind][-i].addPlot())
+                p[-1].setXRange(-self.len_data*self.wait_time_ms/1000,
+                                     0, padding=0)
+                p[-1].setYRange(0, 100, padding=0)
+                p[-1].enableAutoRange('xy', False)
+                p[-1].showAxis('top', show=True)
+                p[-1].showAxis('right', show=True)
+                p[-1].axes['bottom']['item'].setStyle(showValues=True)
+                p[-1].axes['top']['item'].setStyle(showValues=False)
+                p[-1].axes['left']['item'].setStyle(showValues=False)
+                p[-1].axes['right']['item'].setStyle(showValues=True)
+                p[-1].axes['right']['item'].setGrid(100)
+                p[-1].axes['top']['item'].setGrid(100)
+                p[-1].setLabel('bottom', "Seconds")
+                p[-1].setMouseEnabled(x=False, y=False)
+                p[-1].hideButtons()
+                p[-1].setMenuEnabled(False)
+                self.gpu_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
+                            fillLevel=-0.3, brush=(50, 50, 200, 50)))
 
     def plot_cpuinfo(self,):
         counter = 0
@@ -159,6 +248,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mem_curve[1].setData(self.x, self.meminfo[:, 1])
         self.label_5.setText('Memory: ' + str(round(memoccup/1048576, 1)) + 'GiB of ' + str(round(memtotal/1048576, 1)) + 'GiB used (' + str(round(self.meminfo[-1, 0], 1)) + '%)')
         self.label_6.setText('Swap: ' + str(round((swaptotal - swapfree)/1048576, 1)) + 'GiB of ' + str(round(swaptotal/1048576, 1)) + 'GiB used (' + str(round(self.meminfo[-1, 1], 1)) + '%)')
+
+
+    def update_gpuinfo(self,):
+        self.gpuinfo = np.roll(self.gpuinfo, -1, axis=0)
+        data = self.s.get_nvidia_smi_info()
+        for gpu_ind in range(self.s.gpu_num):
+            self.gpuinfo[-1, 0, gpu_ind] = int(data[gpu_ind][4])
+            self.gpu_curve[3 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 0, gpu_ind])
+            self.gpuinfo[-1, 1, gpu_ind] = int(data[gpu_ind][5])
+            self.gpu_curve[2 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 1, gpu_ind])
+            self.gpuinfo[-1, 2, gpu_ind] = int(data[gpu_ind][6])
+            self.gpu_curve[1 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 2, gpu_ind])
+            self.gpuinfo[-1, 3, gpu_ind] = int(data[gpu_ind][7])
+            self.gpu_curve[0 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 3, gpu_ind])
+            self.gpu_widgets[gpu_ind][-5].setText("Memory clock: " + str(int(data[gpu_ind][8])) + 'MHz')
+            self.gpu_widgets[gpu_ind][-6].setText("Gpu clock: " + str(int(data[gpu_ind][9])) + 'MHz')
 
 
     def update_cpuinfo(self,):
