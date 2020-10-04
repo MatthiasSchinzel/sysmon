@@ -20,23 +20,23 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cpu_curve = []
         self.mem_curve = []
         self.gpu_curve = []
+        self.net_curve = []
         self.ti = []
+        self.ti_net = []
         self.wait_time_ms = 1000
         self.s = sysinfo()
         self.meminfo = np.zeros([self.len_data, 2])
+        self.netinfo = np.zeros([self.len_data, 2, self.s.amount_net_adater])
         self.cpuinfo = np.zeros([self.len_data, self.s.cpu_core_count+1])
         self.x = np.linspace(-self.len_data*self.wait_time_ms/1000, 0,
                              num=self.len_data, endpoint=True)
         self.label_8.setText(self.s.cpu_model_name)
         self.plot_meminfo()
         self.plot_cpuinfo()
+        self.plot_netinfo()
         self.headertitle = ('USER', 'PID', 'CPU [%]', 'MEM [%]', 'START', 'TIME', 'COMMAND')
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.horizontalHeader().setHighlightSections(False)
-        self.update_running_processes()
-        self.timer_3 = QtCore.QTimer()
-        self.timer_3.timeout.connect(self.update_running_processes)
-        self.timer_3.start(self.wait_time_ms)
         # self.tableWidget.setRowCount(4096)
         # self.tableWidget.setColumnCount(5)
         # self.tableWidget.setHorizontalHeaderLabels(headertitle)
@@ -47,6 +47,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectRows)
         # self.tableWidget.setSortingEnabled(True)
         self.tableWidget.setShowGrid(False)
+        self.update_running_processes()
+        self.timer_4 = QtCore.QTimer()
+        self.timer_4.timeout.connect(self.update_running_processes)
+        self.timer_4.start(self.wait_time_ms)
         # dynamically create gpu tabs
         if self.s.nvidia_installed == 1:
             self.gpu_widgets = []
@@ -241,6 +245,58 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_meminfo)
         self.timer.start(self.wait_time_ms)
+
+    def plot_netinfo(self,):
+        p = []
+        p.append(self.widget_10.addPlot())
+        self.s.refresh_network()
+        for adapter in range(self.s.amount_net_adater):
+            p[-1].setXRange(-self.len_data*self.wait_time_ms/1000,
+                              0, padding=0)
+            #p[-1].setYRange(0, 100, padding=0)
+            p[-1].enableAutoRange('x', False)
+            p[-1].showAxis('top', show=True)
+            p[-1].showAxis('right', show=True)
+            p[-1].axes['bottom']['item'].setStyle(showValues=True)
+            p[-1].axes['top']['item'].setStyle(showValues=False)
+            p[-1].axes['left']['item'].setStyle(showValues=False)
+            p[-1].axes['right']['item'].setStyle(showValues=True)
+            p[-1].axes['right']['item'].setGrid(100)
+            p[-1].axes['top']['item'].setGrid(100)
+            p[-1].setLabel('bottom', "Seconds")
+            p[-1].setLabel('top', "Hi")
+            p[-1].setMouseEnabled(x=False, y=False)
+            p[-1].hideButtons()
+            p[-1].setMenuEnabled(False)
+            p[-1].vb.setLimits(yMin=0)
+            self.net_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
+                              fillLevel=-0.3, brush=(50, 50, 200, 50)))
+            self.net_curve.append(p[-1].plot(pen=pg.mkPen('r', width=1),
+                              fillLevel=-0.3, brush=(200, 50, 50, 50)))
+            self.ti_net.append(p[-1])
+            # self.ti_net.append(pg.TextItem('', anchor=(0, 1)))
+            # self.ti_net[-1].setPos(-self.len_data*self.wait_time_ms/1000, 0)
+            # p[-1].addItem(self.ti_net[-1])
+            # self.ti_net.append(pg.TextItem('', anchor=(1, 1)))
+            # self.ti_net[-1].setPos(0, 0)
+            # p[-1].addItem(self.ti_net[-1])
+            self.widget_10.nextRow()
+        self.update_netinfo()
+        self.timer_5 = QtCore.QTimer()
+        self.timer_5.timeout.connect(self.update_netinfo)
+        self.timer_5.start(self.wait_time_ms)
+
+    def update_netinfo(self,):
+        self.netinfo = np.roll(self.netinfo, -1, axis=0)
+        rx_bytes, tx_bytes, rx_packets, tx_packets = self.s.refresh_network()
+        for adapter in range(self.s.amount_net_adater):
+            self.netinfo[-1, 0, adapter] = (rx_bytes[adapter, 0] - rx_bytes[adapter, 1]) / self.wait_time_ms
+            self.netinfo[-1, 1, adapter] = (tx_bytes[adapter, 0] - tx_bytes[adapter, 1]) / self.wait_time_ms
+            self.net_curve[0 + 2 * adapter].setData(self.x, self.netinfo[:, 0, adapter])
+            self.net_curve[1 + 2 * adapter].setData(self.x, self.netinfo[:, 1, adapter])
+            self.ti_net[adapter].setLabel('top', 'Rx: ' + str(self.netinfo[-1, 0, adapter]) + ' bytes/s<br>' +
+                                          'Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s')
+            # self.ti_net[1 + 2 * adapter].setText('Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s\n')
 
     def update_meminfo(self,):
         self.meminfo = np.roll(self.meminfo, -1, axis=0)
