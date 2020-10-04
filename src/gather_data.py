@@ -50,6 +50,8 @@ class sysinfo:
         if self.nvidia_installed == 1:
             self.get_basic_info_nvidia_smi()
         self.get_cpuinfo()
+        self.get_all_pysical_adapters()
+        self.get_max_connection_speed()
 
     def read_file(self, type):
         with open('/proc/' + type, 'r') as reader:
@@ -190,6 +192,11 @@ class sysinfo:
         ps = str(subprocess.Popen(['cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(-1)
+        lst = range(len(processes))
+        lst = [str(x) for x in lst]
+        lst.sort()
+        lst = [int(x) for x in lst]
+        processes = [x for _, x in sorted(zip(lst,processes))]
         for id, process in enumerate(processes):
             self.cpu_clock[id] = int(process)
 
@@ -204,6 +211,50 @@ class sysinfo:
                 cur_data = line.split()
                 self.pysical_cpu_core_count = cur_data[-1]
 
+    def get_all_pysical_adapters(self,):
+        ps = str(subprocess.Popen(['ls -l /sys/class/net/'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        processes = ps.split('\n')
+        processes.pop(0)
+        processes.pop(-1)
+        self.pysical_adapters = []
+        self.amount_net_adater = 0
+        for line in processes:
+            if 'virtual' not in line:
+                self.pysical_adapters.append(line.split()[8])
+                self.amount_net_adater += 1
+        self.rx_bytes = np.zeros([self.amount_net_adater, 2])
+        self.rx_packets = np.zeros([self.amount_net_adater, 2])
+        self.tx_bytes = np.zeros([self.amount_net_adater, 2])
+        self.tx_packets = np.zeros([self.amount_net_adater, 2])
+
+    def get_max_connection_speed(self,):
+        self.max_connection_speed = []
+        for adapter in self.pysical_adapters:
+            if 'wlan' not in adapter:
+                ps = str(subprocess.Popen(['ethtool ' + adapter + ' | grep -i speed'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+                processes = ps.split('\n')
+                processes.pop(-1)
+                self.max_connection_speed.append(processes[-1]
+                                                 .replace('\tSpeed: ', ''))
+
+    def parse_network_info(self,):
+        self.adapter_info = []
+        for line in self.lines:
+            for adapter in self.pysical_adapters:
+                if adapter in line:
+                    self.adapter_info.append(line.split())
+
+    def process_network_info(self,):
+        self.rx_bytes = np.roll(self.rx_bytes, 1)
+        self.rx_packets = np.roll(self.rx_packets, 1)
+        self.tx_bytes = np.roll(self.tx_bytes, 1)
+        self.tx_packets = np.roll(self.tx_packets, 1)
+        for ind in range(self.amount_net_adater):
+            self.rx_bytes[ind, 0] = self.adapter_info[ind][1]
+            self.rx_packets[ind, 0] = self.adapter_info[ind][2]
+            self.tx_bytes[ind, 0] = self.adapter_info[ind][9]
+            self.tx_packets[ind, 0] = self.adapter_info[ind][10]
+
     def get_cpuinfo(self,):
         self.read_file('cpuinfo')
         self.parse_cpuinfo()
@@ -214,6 +265,12 @@ class sysinfo:
         self.process_stat()
         self.get_cpu_clock_speed()
         return self.cpu_load
+
+    def refresh_network(self,):
+        self.read_file('net/dev')
+        self.parse_network_info()
+        self.process_network_info()
+        return self.rx_bytes, self.tx_bytes, self.rx_packets, self.tx_packets
 
     def refresh_memory(self,):
         self.read_file('meminfo')
