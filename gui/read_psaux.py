@@ -29,3 +29,30 @@ for gpu in processes:
 
 
 ps = str(subprocess.Popen(['cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+
+ps = str(subprocess.Popen(['ls -l /sys/class/net/'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+processes = ps.split('\n')
+processes.pop(0)
+processes.pop(-1)
+pysical_adapters = []
+for line in processes:
+    if 'virtual' not in line:
+        pysical_adapters.append(line.split()[8])
+
+with open('/proc/' + 'net/dev', 'r') as reader:
+    file = reader.read()
+lines = file.splitlines()
+
+adapter_info = []
+for line in lines:
+    for adapter in pysical_adapters:
+        if adapter in line:
+            adapter_info.append(line.split())
+
+max_connection_speed = []
+for adapter in pysical_adapters:
+    if 'wlan' not in adapter:
+        ps = str(subprocess.Popen(['ethtool ' + adapter + ' | grep -i speed'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        processes = ps.split('\n')
+        processes.pop(-1)
+        max_connection_speed.append(processes[-1].replace('\tSpeed: ', ''))
