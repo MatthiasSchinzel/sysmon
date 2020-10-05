@@ -21,12 +21,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.mem_curve = []
         self.gpu_curve = []
         self.net_curve = []
+        self.disk_curve = []
         self.ti = []
         self.ti_net = []
+        self.ti_disk = []
         self.wait_time_ms = 1000
         self.s = sysinfo()
         self.meminfo = np.zeros([self.len_data, 2])
         self.netinfo = np.zeros([self.len_data, 2, self.s.amount_net_adater])
+        self.diskinfo = np.zeros([self.len_data, 2, self.s.amount_disks])
         self.cpuinfo = np.zeros([self.len_data, self.s.cpu_core_count+1])
         self.x = np.linspace(-self.len_data*self.wait_time_ms/1000, 0,
                              num=self.len_data, endpoint=True)
@@ -34,6 +37,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.plot_meminfo()
         self.plot_cpuinfo()
         self.plot_netinfo()
+        self.plot_diskinfo()
         self.headertitle = ('USER', 'PID', 'CPU [%]', 'MEM [%]', 'START', 'TIME', 'COMMAND')
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.horizontalHeader().setHighlightSections(False)
@@ -248,9 +252,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def plot_netinfo(self,):
         p = []
-        p.append(self.widget_10.addPlot())
         self.s.refresh_network()
         for adapter in range(self.s.amount_net_adater):
+            p.append(self.widget_10.addPlot())
             p[-1].setXRange(-self.len_data*self.wait_time_ms/1000,
                               0, padding=0)
             #p[-1].setYRange(0, 100, padding=0)
@@ -273,12 +277,6 @@ class MainWindow(QtWidgets.QMainWindow):
             self.net_curve.append(p[-1].plot(pen=pg.mkPen('r', width=1),
                               fillLevel=-0.3, brush=(200, 50, 50, 50)))
             self.ti_net.append(p[-1])
-            # self.ti_net.append(pg.TextItem('', anchor=(0, 1)))
-            # self.ti_net[-1].setPos(-self.len_data*self.wait_time_ms/1000, 0)
-            # p[-1].addItem(self.ti_net[-1])
-            # self.ti_net.append(pg.TextItem('', anchor=(1, 1)))
-            # self.ti_net[-1].setPos(0, 0)
-            # p[-1].addItem(self.ti_net[-1])
             self.widget_10.nextRow()
         self.update_netinfo()
         self.timer_5 = QtCore.QTimer()
@@ -298,6 +296,53 @@ class MainWindow(QtWidgets.QMainWindow):
             # self.ti_net[1 + 2 * adapter].setText('Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s\n')
             self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' @' + self.s.max_connection_speed[adapter] +
              ', Total Rx: ' + str(rx_bytes[adapter, 0]) + ' bytes' + ', Total Tx: ' + str(tx_bytes[adapter, 0]) + ' bytes')
+
+    def plot_diskinfo(self,):
+        p = []
+        self.s.refresh_disks()
+        for disk in range(self.s.amount_disks):
+            p.append(self.widget_8.addPlot())
+            p[-1].setXRange(-self.len_data*self.wait_time_ms/1000,
+                              0, padding=0)
+            #p[-1].setYRange(0, 100, padding=0)
+            p[-1].enableAutoRange('x', False)
+            p[-1].showAxis('top', show=True)
+            p[-1].showAxis('right', show=True)
+            p[-1].axes['bottom']['item'].setStyle(showValues=True)
+            p[-1].axes['top']['item'].setStyle(showValues=False)
+            p[-1].axes['left']['item'].setStyle(showValues=False)
+            p[-1].axes['right']['item'].setStyle(showValues=True)
+            p[-1].axes['right']['item'].setGrid(100)
+            p[-1].axes['top']['item'].setGrid(100)
+            # p[-1].setLabel('bottom', "Seconds")
+            p[-1].setMouseEnabled(x=False, y=False)
+            p[-1].hideButtons()
+            p[-1].setMenuEnabled(False)
+            p[-1].vb.setLimits(yMin=0)
+            self.disk_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
+                              fillLevel=-0.3, brush=(50, 50, 200, 50)))
+            self.disk_curve.append(p[-1].plot(pen=pg.mkPen('r', width=1),
+                              fillLevel=-0.3, brush=(200, 50, 50, 50)))
+            self.ti_disk.append(p[-1])
+            self.widget_8.nextRow()
+        self.update_diskinfo()
+        self.timer_6 = QtCore.QTimer()
+        self.timer_6.timeout.connect(self.update_diskinfo)
+        self.timer_6.start(self.wait_time_ms)
+
+    def update_diskinfo(self,):
+        self.diskinfo = np.roll(self.diskinfo, -1, axis=0)
+        read_bytes, write_bytes = self.s.refresh_disks()
+        for disk in range(self.s.amount_disks):
+            self.diskinfo[-1, 0, disk] = (read_bytes[disk, 0] - read_bytes[disk, 1]) / (self.wait_time_ms/(1e3))
+            self.diskinfo[-1, 1, disk] = (write_bytes[disk, 0] - write_bytes[disk, 1]) / (self.wait_time_ms/(1e3))
+            self.disk_curve[0 + 2 * disk].setData(self.x, self.diskinfo[:, 0, disk])
+            self.disk_curve[1 + 2 * disk].setData(self.x, self.diskinfo[:, 1, disk])
+            #self.ti_net[adapter].setLabel('top', 'Rx: ' + str(self.netinfo[-1, 0, adapter]) + ' bytes/s<br>' +
+            #                              'Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s')
+            # self.ti_net[1 + 2 * adapter].setText('Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s\n')
+            #self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' @' + self.s.max_connection_speed[adapter] +
+            # ', Total Rx: ' + str(rx_bytes[adapter, 0]) + ' bytes' + ', Total Tx: ' + str(tx_bytes[adapter, 0]) + ' bytes')
 
     def update_meminfo(self,):
         self.meminfo = np.roll(self.meminfo, -1, axis=0)
