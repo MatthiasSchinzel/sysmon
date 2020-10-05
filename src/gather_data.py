@@ -24,6 +24,7 @@ class sysinfo:
         self.cpu_model_name = []
         self.previdle = 0
         self.previowait = 0
+        self.amount_disks = 0
         self.read_file('stat')
         self.count_cpu_cores()
         self.get_pysical_disks_and_size()
@@ -38,8 +39,8 @@ class sysinfo:
         self.guest = np.zeros([self.cpu_core_count+1, 2])
         self.guest_nice = np.zeros([self.cpu_core_count+1, 2])
         self.cpu_clock = np.zeros([self.cpu_core_count, ])
-        self.read_sectors = np.zeros(self.amount_net_adater, 2)
-        self.write_sectors = np.zeros(self.amount_net_adater, 2)
+        self.read_bytes = np.zeros([self.amount_disks, 2])
+        self.write_bytes = np.zeros([self.amount_disks, 2])
         self.cpu_load = 0
         self.memtotal = 0
         self.memfree = 0
@@ -272,11 +273,11 @@ class sysinfo:
                     self.disk_data.append(cur_line)
 
     def process_disk_data(self,):
-        self.read_sectors = np.roll(self.read_sectors, 1)
-        self.write_sectors = np.roll(self.write_sectors, 1)
+        self.read_bytes = np.roll(self.read_bytes, 1)
+        self.write_bytes = np.roll(self.write_bytes, 1)
         for ind in range(self.amount_disks):
-            self.read_sectors[ind, 0] = float(self.disk_data[ind][5]) * 512
-            self.write_sectors[ind, 0] = float(self.disk_data[ind][9]) * 512
+            self.read_bytes[ind, 0] = float(self.disk_data[ind][5]) * 512
+            self.write_bytes[ind, 0] = float(self.disk_data[ind][9]) * 512
 
     def parse_network_info(self,):
         self.adapter_info = []
@@ -323,4 +324,4 @@ class sysinfo:
         self.read_file('diskstats')
         self.parse_disk_data()
         self.process_disk_data()
-        return self.read_sectors, self.write_sectors
+        return self.read_bytes, self.write_bytes
