@@ -359,14 +359,22 @@ class MainWindow(QtWidgets.QMainWindow):
         self.gpuinfo = np.roll(self.gpuinfo, -1, axis=0)
         data = self.s.get_nvidia_smi_info()
         for gpu_ind in range(self.s.gpu_num):
-            self.gpuinfo[-1, 0, gpu_ind] = int(data[gpu_ind][4])
-            self.gpu_curve[3 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 0, gpu_ind])
-            self.gpuinfo[-1, 1, gpu_ind] = int(data[gpu_ind][5])
-            self.gpu_curve[2 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 1, gpu_ind])
-            self.gpuinfo[-1, 2, gpu_ind] = int(data[gpu_ind][6])
-            self.gpu_curve[1 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 2, gpu_ind])
-            self.gpuinfo[-1, 3, gpu_ind] = int(data[gpu_ind][7])
-            self.gpu_curve[0 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 3, gpu_ind])
+            num = data[gpu_ind][4]
+            if num != '-':
+                self.gpuinfo[-1, 0, gpu_ind] = int(num)
+                self.gpu_curve[3 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 0, gpu_ind])
+            num = data[gpu_ind][5]
+            if num != '-':
+                self.gpuinfo[-1, 1, gpu_ind] = int(num)
+                self.gpu_curve[2 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 1, gpu_ind])
+            num = data[gpu_ind][6]
+            if num != '-':
+                self.gpuinfo[-1, 2, gpu_ind] = int(num)
+                self.gpu_curve[1 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 2, gpu_ind])
+            num = data[gpu_ind][7]
+            if num != '-':
+                self.gpuinfo[-1, 3, gpu_ind] = int(num)
+                self.gpu_curve[0 + 4 * gpu_ind].setData(self.x, self.gpuinfo[:, 3, gpu_ind])
             self.gpu_widgets[gpu_ind][-5].setText("Memory clock: " + str(int(data[gpu_ind][8])) + 'MHz')
             self.gpu_widgets[gpu_ind][-6].setText("Gpu clock: " + str(int(data[gpu_ind][9])) + 'MHz')
 
