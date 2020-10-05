@@ -263,8 +263,7 @@ class MainWindow(QtWidgets.QMainWindow):
             p[-1].axes['right']['item'].setStyle(showValues=True)
             p[-1].axes['right']['item'].setGrid(100)
             p[-1].axes['top']['item'].setGrid(100)
-            p[-1].setLabel('bottom', "Seconds")
-            p[-1].setLabel('top', "Hi")
+            # p[-1].setLabel('bottom', "Seconds")
             p[-1].setMouseEnabled(x=False, y=False)
             p[-1].hideButtons()
             p[-1].setMenuEnabled(False)
@@ -290,13 +289,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.netinfo = np.roll(self.netinfo, -1, axis=0)
         rx_bytes, tx_bytes, rx_packets, tx_packets = self.s.refresh_network()
         for adapter in range(self.s.amount_net_adater):
-            self.netinfo[-1, 0, adapter] = (rx_bytes[adapter, 0] - rx_bytes[adapter, 1]) / self.wait_time_ms
-            self.netinfo[-1, 1, adapter] = (tx_bytes[adapter, 0] - tx_bytes[adapter, 1]) / self.wait_time_ms
+            self.netinfo[-1, 0, adapter] = (rx_bytes[adapter, 0] - rx_bytes[adapter, 1]) / (self.wait_time_ms/(1e3))
+            self.netinfo[-1, 1, adapter] = (tx_bytes[adapter, 0] - tx_bytes[adapter, 1]) / (self.wait_time_ms/(1e3))
             self.net_curve[0 + 2 * adapter].setData(self.x, self.netinfo[:, 0, adapter])
             self.net_curve[1 + 2 * adapter].setData(self.x, self.netinfo[:, 1, adapter])
             self.ti_net[adapter].setLabel('top', 'Rx: ' + str(self.netinfo[-1, 0, adapter]) + ' bytes/s<br>' +
                                           'Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s')
             # self.ti_net[1 + 2 * adapter].setText('Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s\n')
+            self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' @' + self.s.max_connection_speed[adapter] +
+             ', Total Rx: ' + str(rx_bytes[adapter, 0]) + ' bytes' + ', Total Tx: ' + str(tx_bytes[adapter, 0]) + ' bytes')
 
     def update_meminfo(self,):
         self.meminfo = np.roll(self.meminfo, -1, axis=0)
