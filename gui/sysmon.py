@@ -8,6 +8,75 @@ from gather_data import sysinfo
 # from sysmonitor import Ui_MainWindow
 
 
+def bytes_to_bit(bytes, per_second_flag=0):
+    if bytes * 8 > 1e12:
+        number_str = str(round(float(bytes)/1e12 * 8, 2))
+        unit = 'Tbit'
+    elif bytes * 8 > 1e9:
+        number_str = str(round(float(bytes)/1e9 * 8, 2))
+        unit = 'Gbit'
+    elif bytes * 8 > 1e6:
+        number_str = str(round(float(bytes)/1e6 * 8, 2))
+        unit = 'Mbit'
+    elif bytes * 8 > 1e3:
+        number_str = str(round(float(bytes)/1e3 * 8, 2))
+        unit = 'kbit'
+    else:
+        number_str = str(round(int(bytes) * 8, 0))
+        unit = 'bit'
+    if per_second_flag:
+        unit += '/s'
+        number_str = number_str + '{:>7}'.format(unit)
+    else:
+        number_str = number_str + '{:>5}'.format(unit)
+    return number_str
+
+def bytes_to_byte(bytes, per_second_flag=0):
+    if bytes > 1e12:
+        number_str = str(round(float(bytes)/1e12, 2))
+        unit = 'TB'
+    elif bytes > 1e9:
+        number_str = str(round(float(bytes)/1e9, 2))
+        unit = 'GB'
+    elif bytes > 1e6:
+        number_str = str(round(float(bytes)/1e6, 2))
+        unit = 'MB'
+    elif bytes > 1e3:
+        number_str = str(round(float(bytes)/1e3, 2))
+        unit = 'kB'
+    else:
+        number_str = str(int(bytes))
+        unit = 'B'
+    if per_second_flag:
+        unit += '/s'
+        number_str = number_str + '{:>5}'.format(unit)
+    else:
+        number_str = number_str + '{:>3}'.format(unit)
+    return number_str
+
+def bytes_to_bibyte(bytes, per_second_flag=0):
+    if bytes > 1024**4:
+        number_str = str(round(float(bytes)/1024**4, 2))
+        unit = 'TiB'
+    elif bytes > 1024**3:
+        number_str = str(round(float(bytes)/1024**3, 2))
+        unit = 'GiB'
+    elif bytes > 1024**2:
+        number_str = str(round(float(bytes)/1024**2, 2))
+        unit = 'MiB'
+    elif bytes > 1024:
+        number_str = str(round(float(bytes)/1024, 2))
+        unit = 'kiB'
+    else:
+        number_str = str(int(bytes))
+        unit = 'B'
+    if per_second_flag:
+        unit += '/s'
+        number_str = number_str + '{:>6}'.format(unit)
+    else:
+        number_str = number_str + '{:>4}'.format(unit)
+    return number_str
+
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
@@ -268,6 +337,7 @@ class MainWindow(QtWidgets.QMainWindow):
             p[-1].axes['right']['item'].setGrid(100)
             p[-1].axes['top']['item'].setGrid(100)
             # p[-1].setLabel('bottom', "Seconds")
+            p[-1].setLabels(right=('','bit'))
             p[-1].setMouseEnabled(x=False, y=False)
             p[-1].hideButtons()
             p[-1].setMenuEnabled(False)
@@ -279,6 +349,12 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ti_net.append(p[-1])
             self.widget_10.nextRow()
         self.update_netinfo()
+        adapter_text = ''
+        for ind, adapter in enumerate(self.s.pysical_adapters):
+            adapter_text += adapter
+            if ind+1 != self.s.amount_net_adater:
+                adapter_text += ', '
+        self.label_11.setText(adapter_text)
         self.timer_5 = QtCore.QTimer()
         self.timer_5.timeout.connect(self.update_netinfo)
         self.timer_5.start(self.wait_time_ms)
@@ -287,15 +363,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self.netinfo = np.roll(self.netinfo, -1, axis=0)
         rx_bytes, tx_bytes, rx_packets, tx_packets = self.s.refresh_network()
         for adapter in range(self.s.amount_net_adater):
-            self.netinfo[-1, 0, adapter] = (rx_bytes[adapter, 0] - rx_bytes[adapter, 1]) / (self.wait_time_ms/(1e3))
-            self.netinfo[-1, 1, adapter] = (tx_bytes[adapter, 0] - tx_bytes[adapter, 1]) / (self.wait_time_ms/(1e3))
-            self.net_curve[0 + 2 * adapter].setData(self.x, self.netinfo[:, 0, adapter])
-            self.net_curve[1 + 2 * adapter].setData(self.x, self.netinfo[:, 1, adapter])
-            self.ti_net[adapter].setLabel('top', 'Rx: ' + str(self.netinfo[-1, 0, adapter]) + ' bytes/s<br>' +
-                                          'Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s')
-            # self.ti_net[1 + 2 * adapter].setText('Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s\n')
-            self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' @' + self.s.max_connection_speed[adapter] +
-             ', Total Rx: ' + str(rx_bytes[adapter, 0]) + ' bytes' + ', Total Tx: ' + str(tx_bytes[adapter, 0]) + ' bytes')
+            self.netinfo[-1, 0, adapter] = ((rx_bytes[adapter, 0] - rx_bytes[adapter, 1])) / (self.wait_time_ms/(1e3))
+            self.netinfo[-1, 1, adapter] = ((tx_bytes[adapter, 0] - tx_bytes[adapter, 1])) / (self.wait_time_ms/(1e3))
+            self.net_curve[0 + 2 * adapter].setData(self.x, self.netinfo[:, 0, adapter] * 8)
+            self.net_curve[1 + 2 * adapter].setData(self.x, self.netinfo[:, 1, adapter] * 8)
+            val_1 = "{:>13}".format(bytes_to_bit(self.netinfo[-1, 0, adapter], 1)).replace(" ", "&nbsp;")
+            val_2 = "{:>13}".format(bytes_to_bit(self.netinfo[-1, 1, adapter], 1)).replace(" ", "&nbsp;")
+            self.ti_net[adapter].setLabel('top', "<span style = \"font-family:consolas\"><span1 style=\"color:blue\">Rx: " + val_1 + "</span1> <span2 style=\"color:red\">Tx: " + val_2 + '</span2></span>')
+            self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' connected with ' + self.s.max_connection_speed[adapter] +
+             ', Total received: ' + bytes_to_bibyte(rx_bytes[adapter, 0]) + ', Total transmitted: ' + bytes_to_bibyte(tx_bytes[adapter, 0]))
 
     def plot_diskinfo(self,):
         p = []
@@ -326,6 +402,13 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ti_disk.append(p[-1])
             self.widget_8.nextRow()
         self.update_diskinfo()
+        disk_text = ''
+        for ind, disk in enumerate(self.s.pysical_disk):
+            disk_text += disk
+            # disk_text += ', ' + bytes_to_byte(self.s.pysical_disk_size[ind])
+            if ind+1 != self.s.amount_disks:
+                disk_text += ', '
+        self.label_13.setText(disk_text)
         self.timer_6 = QtCore.QTimer()
         self.timer_6.timeout.connect(self.update_diskinfo)
         self.timer_6.start(self.wait_time_ms)
