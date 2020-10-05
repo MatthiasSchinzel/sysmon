@@ -240,13 +240,13 @@ class sysinfo:
                 processes = ps.split('\n')
                 processes.pop(-1)
                 self.max_connection_speed.append(processes[-1]
-                                                 .replace('\tSpeed: ', ''))
+                                                 .replace('\tSpeed: ', '').replace('Mb/s', ' Mbit/s'))
             else:
                 ps = str(subprocess.Popen(['iwconfig ' + adapter + ' | grep "Bit Rate"'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
                 processes.pop(-1)
                 self.max_connection_speed.append(processes[-1].split()[1]
-                                                 .replace('Rate=', '') + 'Mb/s')
+                                                 .replace('Rate=', '') + ' Mbit/s')
                 self.wlan_flag = 1
 
 
