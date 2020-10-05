@@ -56,3 +56,37 @@ for adapter in pysical_adapters:
         processes = ps.split('\n')
         processes.pop(-1)
         max_connection_speed.append(processes[-1].replace('\tSpeed: ', ''))
+
+
+ps = str(subprocess.Popen(['lsblk | grep -e ^NAME -e disk'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+processes = ps.split('\n')
+processes.pop(0)
+processes.pop(-1)
+pysical_disk = []
+pysical_disk_size = []
+for line in processes:
+    cur_line = line.split()
+    pysical_disk.append(cur_line[0])
+    pysical_disk_size.append(cur_line[3])
+
+for ind, size in enumerate(pysical_disk_size):
+    if 'K' in size:
+        pysical_disk_size[ind] = float(size.replace('K', '').replace(',', '.')) * 1e3
+    if 'M' in size:
+        pysical_disk_size[ind] = float(size.replace('M', '').replace(',', '.')) * 1e6
+    if 'G' in size:
+        pysical_disk_size[ind] = float(size.replace('G', '').replace(',', '.')) * 1e9
+    if 'T' in size:
+        pysical_disk_size[ind] = float(size.replace('T', '').replace(',', '.')) * 1e12
+
+
+with open('/proc/' + 'diskstats', 'r') as reader:
+    file = reader.read()
+lines = file.splitlines()
+
+disk_data = []
+for line in lines:
+    cur_line = line.split(maxsplit = 17)
+    for disk in pysical_disk:
+        if disk == cur_line[2]:
+            disk_data.append(cur_line)
