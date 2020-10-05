@@ -251,7 +251,7 @@ class sysinfo:
 
 
     def get_pysical_disks_and_size(self,):
-        ps = str(subprocess.Popen(['lsblk | grep -e ^NAME -e disk'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        ps = str(subprocess.Popen(['lsblk -b | grep -e ^NAME -e disk'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(0)
         processes.pop(-1)
@@ -272,12 +272,14 @@ class sysinfo:
                 self.pysical_disk_size[ind] = float(size.replace('G', '').replace(',', '.')) * 1e9
             if 'T' in size:
                 self.pysical_disk_size[ind] = float(size.replace('T', '').replace(',', '.')) * 1e12
+            else:
+                self.pysical_disk_size[ind] = int(size)
 
     def parse_disk_data(self,):
         self.disk_data = []
-        for line in self.lines:
-            cur_line = line.split(maxsplit=17)
-            for disk in self.pysical_disk:
+        for disk in self.pysical_disk:
+            for line in self.lines:
+                cur_line = line.split(maxsplit=17)
                 if disk == cur_line[2]:
                     self.disk_data.append(cur_line)
 
