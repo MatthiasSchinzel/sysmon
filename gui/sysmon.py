@@ -31,6 +31,7 @@ def bytes_to_bit(bytes, per_second_flag=0):
         number_str = number_str + '{:>5}'.format(unit)
     return number_str
 
+
 def bytes_to_byte(bytes, per_second_flag=0):
     if bytes > 1e12:
         number_str = str(round(float(bytes)/1e12, 2))
@@ -53,6 +54,7 @@ def bytes_to_byte(bytes, per_second_flag=0):
     else:
         number_str = number_str + '{:>3}'.format(unit)
     return number_str
+
 
 def bytes_to_bibyte(bytes, per_second_flag=0):
     if bytes > 1024**4:
@@ -337,7 +339,7 @@ class MainWindow(QtWidgets.QMainWindow):
             p[-1].axes['right']['item'].setGrid(100)
             p[-1].axes['top']['item'].setGrid(100)
             # p[-1].setLabel('bottom', "Seconds")
-            p[-1].setLabels(right=('','bit'))
+            p[-1].setLabels(right=('','bit/s'))
             p[-1].setMouseEnabled(x=False, y=False)
             p[-1].hideButtons()
             p[-1].setMenuEnabled(False)
@@ -369,7 +371,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.net_curve[1 + 2 * adapter].setData(self.x, self.netinfo[:, 1, adapter] * 8)
             val_1 = "{:>13}".format(bytes_to_bit(self.netinfo[-1, 0, adapter], 1)).replace(" ", "&nbsp;")
             val_2 = "{:>13}".format(bytes_to_bit(self.netinfo[-1, 1, adapter], 1)).replace(" ", "&nbsp;")
-            self.ti_net[adapter].setLabel('top', "<span style = \"font-family:consolas\"><span1 style=\"color:blue\">Rx: " + val_1 + "</span1> <span2 style=\"color:red\">Tx: " + val_2 + '</span2></span>')
+            self.ti_net[adapter].setLabel('top', "<span style = \"font-family:consolas\"><span1 style=\"color:blue\">Rx: " + val_1 + "</span1> <span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Tx: " + val_2 + '</span2></span>')
             self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' connected with ' + self.s.max_connection_speed[adapter] +
              ', Total received: ' + bytes_to_bibyte(rx_bytes[adapter, 0]) + ', Total transmitted: ' + bytes_to_bibyte(tx_bytes[adapter, 0]))
 
@@ -390,6 +392,7 @@ class MainWindow(QtWidgets.QMainWindow):
             p[-1].axes['right']['item'].setStyle(showValues=True)
             p[-1].axes['right']['item'].setGrid(100)
             p[-1].axes['top']['item'].setGrid(100)
+            p[-1].setLabels(right=('','B/s'))
             # p[-1].setLabel('bottom', "Seconds")
             p[-1].setMouseEnabled(x=False, y=False)
             p[-1].hideButtons()
@@ -421,11 +424,11 @@ class MainWindow(QtWidgets.QMainWindow):
             self.diskinfo[-1, 1, disk] = (write_bytes[disk, 0] - write_bytes[disk, 1]) / (self.wait_time_ms/(1e3))
             self.disk_curve[0 + 2 * disk].setData(self.x, self.diskinfo[:, 0, disk])
             self.disk_curve[1 + 2 * disk].setData(self.x, self.diskinfo[:, 1, disk])
-            #self.ti_net[adapter].setLabel('top', 'Rx: ' + str(self.netinfo[-1, 0, adapter]) + ' bytes/s<br>' +
-            #                              'Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s')
-            # self.ti_net[1 + 2 * adapter].setText('Tx: ' + str(self.netinfo[-1, 1, adapter]) + ' bytes/s\n')
-            #self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' @' + self.s.max_connection_speed[adapter] +
-            # ', Total Rx: ' + str(rx_bytes[adapter, 0]) + ' bytes' + ', Total Tx: ' + str(tx_bytes[adapter, 0]) + ' bytes')
+            val_1 = "{:>10}".format(bytes_to_byte(self.diskinfo[-1, 0, disk], 1)).replace(" ", "&nbsp;")
+            val_2 = "{:>10}".format(bytes_to_byte(self.diskinfo[-1, 1, disk], 1)).replace(" ", "&nbsp;")
+            self.ti_disk[disk].setLabel('top', "<span style = \"font-family:consolas\"><span1 style=\"color:blue\">Read: " + val_1 + "</span1> <span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Write: " + val_2 + '</span2></span>')
+            self.ti_disk[disk].setLabel('bottom', self.s.pysical_disk[disk] + ' (' + bytes_to_byte(self.s.pysical_disk_size[disk]) + ')' +
+              ', Total read: ' + bytes_to_byte(read_bytes[disk, 0]) + ', Total write: ' + bytes_to_byte(write_bytes[disk, 0]))
 
     def update_meminfo(self,):
         self.meminfo = np.roll(self.meminfo, -1, axis=0)
