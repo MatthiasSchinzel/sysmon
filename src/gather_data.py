@@ -26,6 +26,7 @@ class sysinfo:
         self.previowait = 0
         self.read_file('stat')
         self.count_cpu_cores()
+        self.get_pysical_disks_and_size()
         self.user = np.zeros([self.cpu_core_count+1, 2])
         self.nice = np.zeros([self.cpu_core_count+1, 2])
         self.system = np.zeros([self.cpu_core_count+1, 2])
@@ -37,6 +38,8 @@ class sysinfo:
         self.guest = np.zeros([self.cpu_core_count+1, 2])
         self.guest_nice = np.zeros([self.cpu_core_count+1, 2])
         self.cpu_clock = np.zeros([self.cpu_core_count, ])
+        self.read_sectors = np.zeros(self.amount_net_adater, 2)
+        self.write_sectors = np.zeros(self.amount_net_adater, 2)
         self.cpu_load = 0
         self.memtotal = 0
         self.memfree = 0
@@ -237,6 +240,44 @@ class sysinfo:
                 self.max_connection_speed.append(processes[-1]
                                                  .replace('\tSpeed: ', ''))
 
+    def get_pysical_disks_and_size(self,):
+        ps = str(subprocess.Popen(['lsblk | grep -e ^NAME -e disk'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        processes = ps.split('\n')
+        processes.pop(0)
+        processes.pop(-1)
+        self.pysical_disk = []
+        self.pysical_disk_size = []
+        self.amount_disks = 0
+        for line in processes:
+            cur_line = line.split()
+            self.pysical_disk.append(cur_line[0])
+            self.pysical_disk_size.append(cur_line[3])
+            self.amount_disks += 1
+        for ind, size in enumerate(self.pysical_disk_size):
+            if 'K' in size:
+                self.pysical_disk_size[ind] = float(size.replace('K', '').replace(',', '.')) * 1e3
+            if 'M' in size:
+                self.pysical_disk_size[ind] = float(size.replace('M', '').replace(',', '.')) * 1e6
+            if 'G' in size:
+                self.pysical_disk_size[ind] = float(size.replace('G', '').replace(',', '.')) * 1e9
+            if 'T' in size:
+                self.pysical_disk_size[ind] = float(size.replace('T', '').replace(',', '.')) * 1e12
+
+    def parse_disk_data(self,):
+        self.disk_data = []
+        for line in self.lines:
+            cur_line = line.split(maxsplit=17)
+            for disk in self.pysical_disk:
+                if disk == cur_line[2]:
+                    self.disk_data.append(cur_line)
+
+    def process_disk_data(self,):
+        self.read_sectors = np.roll(self.read_sectors, 1)
+        self.write_sectors = np.roll(self.write_sectors, 1)
+        for ind in range(self.amount_disks):
+            self.read_sectors[ind, 0] = float(self.disk_data[ind][5]) * 512
+            self.write_sectors[ind, 0] = float(self.disk_data[ind][9]) * 512
+
     def parse_network_info(self,):
         self.adapter_info = []
         for line in self.lines:
@@ -277,3 +318,9 @@ class sysinfo:
         self.parse_meminfo()
         self.non_cached = self.memtotal - self.memfree - (self.buffers + self.cached)
         return self.memtotal, self.non_cached, self.swaptotal, self.swapfree
+
+    def refresh_disks(self,):
+        self.read_file('diskstats')
+        self.parse_disk_data()
+        self.process_disk_data()
+        return self.read_sectors, self.write_sectors
