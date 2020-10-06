@@ -287,8 +287,8 @@ class sysinfo:
         self.read_bytes = np.roll(self.read_bytes, 1)
         self.write_bytes = np.roll(self.write_bytes, 1)
         for ind in range(self.amount_disks):
-            self.read_bytes[ind, 0] = float(self.disk_data[ind][5]) * 512
-            self.write_bytes[ind, 0] = float(self.disk_data[ind][9]) * 512
+            self.read_bytes[ind, 0] = int(self.disk_data[ind][5]) * 512
+            self.write_bytes[ind, 0] = int(self.disk_data[ind][9]) * 512
 
     def parse_network_info(self,):
         self.adapter_info = []
