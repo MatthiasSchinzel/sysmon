@@ -1,8 +1,9 @@
 <p align="center" style="font-size:30px">
-<img src="src/output.gif" align="center">
+
 </p>
 <p align="center" style="font-size:30px">
   <br>
+  <img src="src/output.gif" align="center">
   <em>Linux activity monitor</em>
   <br>
 </p>
