@@ -59,9 +59,9 @@ Dependencies (Python 3):
 ```
 pip install pyqtgraph, pyqt5
 ```
-clone the project and cd into it. Then
+clone the project and cd into src/. Then
 ```
-python src/sysmon.py
+python sysmon.py
 ```
 
 If you want to monitor your Nvidia GPU, nvidia-smi has to be installed.
