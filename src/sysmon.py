@@ -3,7 +3,6 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import sys
 import numpy as np
-sys.path.insert(0, '../src/')
 from gather_data import sysinfo
 
 
@@ -113,27 +112,23 @@ class MainWindow(QtWidgets.QMainWindow):
                             'START', 'TIME', 'COMMAND')
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.horizontalHeader().setHighlightSections(False)
-        # self.tableWidget.setRowCount(4096)
-        # self.tableWidget.setColumnCount(5)
-        # self.tableWidget.setHorizontalHeaderLabels(headertitle)
         header = self.tableWidget.horizontalHeader()
         header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
         header.setStretchLastSection(True)
         header.setResizeMode(False)
         self.tableWidget.setSelectionBehavior(
             QtGui.QAbstractItemView.SelectRows)
-        # self.tableWidget.setSortingEnabled(True)
         self.tableWidget.setShowGrid(False)
         self.update_running_processes()
         self.timer_4 = QtCore.QTimer()
         self.timer_4.timeout.connect(self.update_running_processes)
         self.timer_4.start(self.wait_time_ms)
-        # dynamically create gpu tabs
         if self.s.nvidia_installed == 1:
             self.gpu_widgets = []
             self.gpuinfo = np.zeros([self.len_data, 4, self.s.gpu_num])
             for gpu_ind in range(self.s.gpu_num):
                 tab_widgets = []
+
                 # first set vertical alignment of tab
                 tab = QtWidgets.QWidget()
                 self.tabWidget.addTab(tab, self.s.gpu_name[gpu_ind])
@@ -243,7 +238,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 p[-1].hideButtons()
                 p[-1].setMenuEnabled(False)
                 self.gpu_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
-                                                 fillLevel=-0.3, brush=(50, 50, 200, 50)))
+                                                 fillLevel=-0.3,
+                                                 brush=(50, 50, 200, 50)))
 
     def plot_cpuinfo(self,):
         counter = 0
@@ -273,7 +269,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self.ti[-1].setPos(0, 100)
             p[-1].addItem(self.ti[-1])
             self.cpu_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
-                                             fillLevel=-0.3, brush=(50, 50, 200, 50)))
+                                             fillLevel=-0.3,
+                                             brush=(50, 50, 200, 50)))
             if counter == 3:
                 self.widget_2.nextRow()
                 counter = 0
@@ -299,7 +296,8 @@ class MainWindow(QtWidgets.QMainWindow):
         p[-1].hideButtons()
         p[-1].setMenuEnabled(False)
         self.cpu_curve .append(p[-1].plot(pen=pg.mkPen('b', width=1),
-                                          fillLevel=-0.3, brush=(50, 50, 200, 50)))
+                                          fillLevel=-0.3,
+                                          brush=(50, 50, 200, 50)))
 
         self.update_cpuinfo()
         self.timer_2 = QtCore.QTimer()
@@ -310,7 +308,8 @@ class MainWindow(QtWidgets.QMainWindow):
         p = []
         memtotal, memoccup, swaptotal, swapfree = self.s.refresh_memory()
         self.meminfo[-1, :] = np.array([memoccup / memtotal,
-                                        (swaptotal - swapfree) / swaptotal]) * 100
+                                       (swaptotal - swapfree)
+                                        / swaptotal]) * 100
         p.append(self.widget.addPlot())
         p[-1].setXRange(-self.len_data * self.wait_time_ms / 1000,
                         0, padding=0)
@@ -329,9 +328,11 @@ class MainWindow(QtWidgets.QMainWindow):
         p[-1].hideButtons()
         p[-1].setMenuEnabled(False)
         self.mem_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
-                                         fillLevel=-0.3, brush=(50, 50, 200, 50)))
+                                         fillLevel=-0.3,
+                                         brush=(50, 50, 200, 50)))
         self.mem_curve.append(p[-1].plot(pen=pg.mkPen('r', width=1),
-                                         fillLevel=-0.3, brush=(200, 50, 50, 50)))
+                                         fillLevel=-0.3,
+                                         brush=(200, 50, 50, 50)))
         self.update_meminfo()
         self.timer = QtCore.QTimer()
         self.timer.timeout.connect(self.update_meminfo)
@@ -344,7 +345,6 @@ class MainWindow(QtWidgets.QMainWindow):
             p.append(self.widget_10.addPlot())
             p[-1].setXRange(-self.len_data * self.wait_time_ms / 1000,
                             0, padding=0)
-            #p[-1].setYRange(0, 100, padding=0)
             p[-1].enableAutoRange('x', False)
             p[-1].showAxis('top', show=True)
             p[-1].showAxis('right', show=True)
@@ -354,16 +354,17 @@ class MainWindow(QtWidgets.QMainWindow):
             p[-1].axes['right']['item'].setStyle(showValues=True)
             p[-1].axes['right']['item'].setGrid(100)
             p[-1].axes['top']['item'].setGrid(100)
-            # p[-1].setLabel('bottom', "Seconds")
             p[-1].setLabels(right=('', 'bit/s'))
             p[-1].setMouseEnabled(x=False, y=False)
             p[-1].hideButtons()
             p[-1].setMenuEnabled(False)
             p[-1].vb.setLimits(yMin=0)
             self.net_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
-                                             fillLevel=-0.3, brush=(50, 50, 200, 50)))
+                                             fillLevel=-0.3,
+                                             brush=(50, 50, 200, 50)))
             self.net_curve.append(p[-1].plot(pen=pg.mkPen('r', width=1),
-                                             fillLevel=-0.3, brush=(200, 50, 50, 50)))
+                                             fillLevel=-0.3,
+                                             brush=(200, 50, 50, 50)))
             self.ti_net.append(p[-1])
             self.widget_10.nextRow()
         self.update_netinfo()
@@ -382,22 +383,35 @@ class MainWindow(QtWidgets.QMainWindow):
         rx_bytes, tx_bytes, rx_packets, tx_packets = self.s.refresh_network()
         for adapter in range(self.s.amount_net_adater):
             self.netinfo[-1, 0, adapter] = (
-                (rx_bytes[adapter, 0] - rx_bytes[adapter, 1])) / (self.wait_time_ms / (1e3))
+                (rx_bytes[adapter, 0] - rx_bytes[adapter, 1])
+                / (self.wait_time_ms / (1e3)))
             self.netinfo[-1, 1, adapter] = (
-                (tx_bytes[adapter, 0] - tx_bytes[adapter, 1])) / (self.wait_time_ms / (1e3))
-            self.net_curve[0 + 2 *
-                           adapter].setData(self.x, self.netinfo[:, 0, adapter] * 8)
-            self.net_curve[1 + 2 *
-                           adapter].setData(self.x, self.netinfo[:, 1, adapter] * 8)
+                (tx_bytes[adapter, 0] - tx_bytes[adapter, 1])
+                / (self.wait_time_ms / (1e3)))
+            self.net_curve[0 + 2 * adapter].setData(
+                self.x, self.netinfo[:, 0, adapter] * 8)
+            self.net_curve[1 + 2 * adapter].setData(
+                self.x, self.netinfo[:, 1, adapter] * 8)
             val_1 = "{:>13}".format(bytes_to_bit(
                 self.netinfo[-1, 0, adapter], 1)).replace(" ", "&nbsp;")
             val_2 = "{:>13}".format(bytes_to_bit(
                 self.netinfo[-1, 1, adapter], 1)).replace(" ", "&nbsp;")
-            self.ti_net[adapter].setLabel('top', "<span style = \"font-family:consolas\"><span1 style=\"color:blue\">Rx: " +
-                                          val_1 + "</span1> <span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Tx: " + val_2 + '</span2></span>')
-            self.ti_net[adapter].setLabel('bottom', self.s.pysical_adapters[adapter] + ' connected with ' + self.s.max_connection_speed[adapter] +
-                                          ', Total received: ' + bytes_to_bibyte(rx_bytes[adapter, 0]) + ', Total transmitted: ' + bytes_to_bibyte(tx_bytes[adapter, 0]))
-            if ((self.netinfo[:, 0, adapter] * 8) < 1000).all() and ((self.netinfo[:, 1, adapter] * 8) < 1000).all():
+            self.ti_net[adapter].setLabel(
+                'top',
+                "<span style = \"font-family:consolas\">" +
+                "<span1 style=\"color:blue\">Rx: " +
+                val_1 +
+                "</span1> <span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Tx: "
+                + val_2 +
+                '</span2></span>')
+            self.ti_net[adapter].setLabel(
+                'bottom', self.s.pysical_adapters[adapter] +
+                ' connected with ' + self.s.max_connection_speed[adapter] +
+                ', Total received: ' + bytes_to_bibyte(rx_bytes[adapter, 0]) +
+                ', Total transmitted: ' +
+                bytes_to_bibyte(tx_bytes[adapter, 0]))
+            if ((self.netinfo[:, 0, adapter] * 8) < 1000).all() and \
+               ((self.netinfo[:, 1, adapter] * 8) < 1000).all():
                 self.ti_net[adapter].enableAutoRange('y', False)
                 self.ti_net[adapter].setYRange(0, 1000, padding=0)
             else:
@@ -410,9 +424,7 @@ class MainWindow(QtWidgets.QMainWindow):
             p.append(self.widget_8.addPlot())
             p[-1].setXRange(-self.len_data * self.wait_time_ms / 1000,
                             0, padding=0)
-            # p[-1].setYRange(0, 1000, padding=0)
             p[-1].enableAutoRange('x', False)
-            # p[-1].enableAutoRange('y', True)
             p[-1].showAxis('top', show=True)
             p[-1].showAxis('right', show=True)
             p[-1].axes['bottom']['item'].setStyle(showValues=True)
@@ -422,22 +434,22 @@ class MainWindow(QtWidgets.QMainWindow):
             p[-1].axes['right']['item'].setGrid(100)
             p[-1].axes['top']['item'].setGrid(100)
             p[-1].setLabels(right=('', 'B/s'))
-            # p[-1].setLabel('bottom', "Seconds")
             p[-1].setMouseEnabled(x=False, y=False)
             p[-1].hideButtons()
             p[-1].setMenuEnabled(False)
             p[-1].vb.setLimits(yMin=0)
             self.disk_curve.append(p[-1].plot(pen=pg.mkPen('b', width=1),
-                                              fillLevel=-0.3, brush=(50, 50, 200, 50)))
+                                              fillLevel=-0.3,
+                                              brush=(50, 50, 200, 50)))
             self.disk_curve.append(p[-1].plot(pen=pg.mkPen('r', width=1),
-                                              fillLevel=-0.3, brush=(200, 50, 50, 50)))
+                                              fillLevel=-0.3,
+                                              brush=(200, 50, 50, 50)))
             self.ti_disk.append(p[-1])
             self.widget_8.nextRow()
         self.update_diskinfo()
         disk_text = ''
         for ind, disk in enumerate(self.s.pysical_disk):
             disk_text += disk
-            # disk_text += ', ' + bytes_to_byte(self.s.pysical_disk_size[ind])
             if ind + 1 != self.s.amount_disks:
                 disk_text += ', '
         self.label_13.setText(disk_text)
@@ -449,10 +461,12 @@ class MainWindow(QtWidgets.QMainWindow):
         self.diskinfo = np.roll(self.diskinfo, -1, axis=0)
         read_bytes, write_bytes = self.s.refresh_disks()
         for disk in range(self.s.amount_disks):
-            self.diskinfo[-1, 0, disk] = (read_bytes[disk, 0] -
-                                          read_bytes[disk, 1]) / (self.wait_time_ms / (1e3))
-            self.diskinfo[-1, 1, disk] = (write_bytes[disk, 0] -
-                                          write_bytes[disk, 1]) / (self.wait_time_ms / (1e3))
+            self.diskinfo[-1, 0, disk] = ((read_bytes[disk, 0] -
+                                          read_bytes[disk, 1])
+                                          / (self.wait_time_ms / (1e3)))
+            self.diskinfo[-1, 1, disk] = ((write_bytes[disk, 0] -
+                                          write_bytes[disk, 1])
+                                          / (self.wait_time_ms / (1e3)))
             self.disk_curve[0 + 2 *
                             disk].setData(self.x, self.diskinfo[:, 0, disk])
             self.disk_curve[1 + 2 *
@@ -461,11 +475,21 @@ class MainWindow(QtWidgets.QMainWindow):
                 self.diskinfo[-1, 0, disk], 1)).replace(" ", "&nbsp;")
             val_2 = "{:>10}".format(bytes_to_byte(
                 self.diskinfo[-1, 1, disk], 1)).replace(" ", "&nbsp;")
-            self.ti_disk[disk].setLabel('top', "<span style = \"font-family:consolas\"><span1 style=\"color:blue\">Read: " +
-                                        val_1 + "</span1> <span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Write: " + val_2 + '</span2></span>')
-            self.ti_disk[disk].setLabel('bottom', self.s.pysical_disk[disk] + ' (' + bytes_to_byte(self.s.pysical_disk_size[disk], r=0) + ')' +
-                                        ', Total read: ' + bytes_to_byte(read_bytes[disk, 0]) + ', Total write: ' + bytes_to_byte(write_bytes[disk, 0]))
-            if (self.diskinfo[:, 0, disk] < 1000).all() and (self.diskinfo[:, 1, disk] < 1000).all():
+            self.ti_disk[disk].setLabel(
+                'top',
+                "<span style = \"font-family:consolas\">" +
+                "<span1 style=\"color:blue\">Read: " +
+                val_1 +
+                "</span1>" +
+                "<span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Write: "
+                + val_2 + '</span2></span>')
+            self.ti_disk[disk].setLabel(
+                'bottom', self.s.pysical_disk[disk] + ' (' +
+                bytes_to_byte(self.s.pysical_disk_size[disk], r=0) + ')' +
+                ', Total read: ' + bytes_to_byte(read_bytes[disk, 0]) +
+                ', Total write: ' + bytes_to_byte(write_bytes[disk, 0]))
+            if (self.diskinfo[:, 0, disk] < 1000).all() and \
+               (self.diskinfo[:, 1, disk] < 1000).all():
                 self.ti_disk[disk].enableAutoRange('y', False)
                 self.ti_disk[disk].setYRange(0, 1000, padding=0)
             else:
@@ -475,13 +499,18 @@ class MainWindow(QtWidgets.QMainWindow):
         self.meminfo = np.roll(self.meminfo, -1, axis=0)
         memtotal, memoccup, swaptotal, swapfree = self.s.refresh_memory()
         self.meminfo[-1, :] = np.array([(memoccup) / memtotal,
-                                        (swaptotal - swapfree) / swaptotal]) * 100
+                                        (swaptotal - swapfree)
+                                        / swaptotal]) * 100
         self.mem_curve[0].setData(self.x, self.meminfo[:, 0])
         self.mem_curve[1].setData(self.x, self.meminfo[:, 1])
-        self.label_5.setText('Memory: ' + str(round(memoccup / 1048576, 1)) + 'GiB of ' + str(
-            round(memtotal / 1048576, 1)) + 'GiB used (' + str(round(self.meminfo[-1, 0], 1)) + '%)')
-        self.label_6.setText('Swap: ' + str(round((swaptotal - swapfree) / 1048576, 1)) + 'GiB of ' + str(
-            round(swaptotal / 1048576, 1)) + 'GiB used (' + str(round(self.meminfo[-1, 1], 1)) + '%)')
+        self.label_5.setText(
+            'Memory: ' + str(round(memoccup / 1048576, 1)) + 'GiB of ' +
+            str(round(memtotal / 1048576, 1)) + 'GiB used (' +
+            str(round(self.meminfo[-1, 0], 1)) + '%)')
+        self.label_6.setText(
+            'Swap: ' + str(round((swaptotal - swapfree) / 1048576, 1)) +
+            'GiB of ' + str(round(swaptotal / 1048576, 1)) + 'GiB used (' +
+            str(round(self.meminfo[-1, 1], 1)) + '%)')
 
     def update_gpuinfo(self,):
         self.gpuinfo = np.roll(self.gpuinfo, -1, axis=0)
@@ -490,23 +519,23 @@ class MainWindow(QtWidgets.QMainWindow):
             num = data[gpu_ind][4]
             if num != '-':
                 self.gpuinfo[-1, 0, gpu_ind] = int(num)
-                self.gpu_curve[3 + 4 *
-                               gpu_ind].setData(self.x, self.gpuinfo[:, 0, gpu_ind])
+                self.gpu_curve[3 + 4 * gpu_ind].setData(
+                    self.x, self.gpuinfo[:, 0, gpu_ind])
             num = data[gpu_ind][5]
             if num != '-':
                 self.gpuinfo[-1, 1, gpu_ind] = int(num)
-                self.gpu_curve[2 + 4 *
-                               gpu_ind].setData(self.x, self.gpuinfo[:, 1, gpu_ind])
+                self.gpu_curve[2 + 4 * gpu_ind].setData(
+                    self.x, self.gpuinfo[:, 1, gpu_ind])
             num = data[gpu_ind][6]
             if num != '-':
                 self.gpuinfo[-1, 2, gpu_ind] = int(num)
-                self.gpu_curve[1 + 4 *
-                               gpu_ind].setData(self.x, self.gpuinfo[:, 2, gpu_ind])
+                self.gpu_curve[1 + 4 * gpu_ind].setData(
+                    self.x, self.gpuinfo[:, 2, gpu_ind])
             num = data[gpu_ind][7]
             if num != '-':
                 self.gpuinfo[-1, 3, gpu_ind] = int(num)
-                self.gpu_curve[0 + 4 *
-                               gpu_ind].setData(self.x, self.gpuinfo[:, 3, gpu_ind])
+                self.gpu_curve[0 + 4 * gpu_ind].setData(
+                    self.x, self.gpuinfo[:, 3, gpu_ind])
             self.gpu_widgets[gpu_ind][-5].setText(
                 "Memory clock: " + str(int(data[gpu_ind][8])) + 'MHz')
             self.gpu_widgets[gpu_ind][-6].setText(
@@ -517,10 +546,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.cpuinfo[-1, :] = self.s.refresh_stat() * 100
         for cpu in range(self.s.cpu_core_count):
             self.cpu_curve[cpu].setData(self.x, self.cpuinfo[:, cpu + 1])
-            self.ti[0 + 2 *
-                    cpu].setText(str(round(self.s.cpu_clock[cpu] / 1000000, 2)) + 'GHz')
-            self.ti[1 + 2 *
-                    cpu].setText(str(int(self.cpuinfo[-1, cpu + 1])) + '%')
+            self.ti[0 + 2 * cpu].setText(
+                str(round(self.s.cpu_clock[cpu] / 1000000, 2)) + 'GHz')
+            self.ti[1 + 2 * cpu].setText(
+                str(int(self.cpuinfo[-1, cpu + 1])) + '%')
         self.cpu_curve[cpu + 1].setData(self.x, self.cpuinfo[:, 0])
         self.label_3.setText('Overall usage: ' +
                              str(round(self.cpuinfo[-1, 0], 1)) + '%')
@@ -545,7 +574,6 @@ class MainWindow(QtWidgets.QMainWindow):
                                              QtGui.QTableWidgetItem(data[row]
                                                                     [column]))
         self.tableWidget.setHorizontalHeaderLabels(self.headertitle)
-        # self.tableWidget.sortItems(2, QtCore.Qt.DescendingOrder)
 
 
 def main():
