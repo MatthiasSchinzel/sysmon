@@ -1,18 +1,14 @@
 <p align="center" style="font-size:30px">
-
+<img src="media/output.gif" align="center">
 </p>
 <p align="center" style="font-size:30px">
   <br>
-  <img src="media/output.gif" align="center">
   <em>Linux activity monitor</em>
   <br>
 </p>
 <p align="center">
 <a href="https://github.com/MatthiasSchinzel/CaRL/graphs/commit-activity">
     <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg">
-</a>
-<a href="https://github.com/MatthiasSchinzel/CaRL/blob/master/LICENSE">
-    <img src="https://img.shields.io/github/license/MatthiasSchinzel/CaRL.svg">
 </a>
 <a href="https://github.com/MatthiasSchinzel/CaRL/tags/">
     <img src="https://img.shields.io/github/v/tag/MatthiasSchinzel/CaRL.svg?sort=semver">
@@ -21,7 +17,7 @@
     <img src="https://img.shields.io/badge/Need%20help%3F-Ask-27B89C">
 </a>
 <a href="https://github.com/MatthiasSchinzel">
-    <img src="https://img.shields.io/badge/Car-Reinforcement%20Learning-red">
+    <img src="https://img.shields.io/badge/Python-3-red">
 </a>
 </p>
 <p align="center">
@@ -37,9 +33,7 @@ Key features
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 
 
-Graphical visualization of the following data
-
-* Running processes overview
+Graphical visualization of the following data:
 
 * CPU utilization and per core clock speed
 
@@ -51,12 +45,13 @@ Graphical visualization of the following data
 
 * HDD/SSD utilization.
 
+You can also see an overview of running processes.
 
 <h2>
 Getting Started
 </h2>
 
-I wanted to have a graphical visualization of the load of most physical devices. The system monitor in ubuntu does a great job, but is not displaying HDD and SDD load as well as no GPU load. This tools brings all the information together to one place, similar to the task manager in windows.
+I wanted to have a graphical visualization of the load of most physical devices. The system monitor in ubuntu does a great job, but is not displaying HDD and SDD load as well as no GPU load. This tools brings all the information together to one place, similar to task manager in windows.
 
 ### 1. Installation and run
 
@@ -66,7 +61,7 @@ pip install pyqtgraph, pyqt5
 ```
 clone the project and cd into it. Then
 ```
-python sysmon.py
+python src/sysmon.py
 ```
 
 If you want to monitor your Nvidia GPU, nvidia-smi has to be installed.
@@ -91,8 +86,18 @@ I this choice of data source makes the program usable across multiple linux dist
 
 * Add more information about Wlan connection. (Signal strength etc.)
 
-* Add more GPU infortmation (Process overview)
+* Maybe add public and private IP address somewhere
+
+* Add more GPU information (Process overview)
+
+* Add GUI menu to modify parameters such as update interval, capture period etc.
+
+* Add iowait for each CPU core
+
+* Add more detailed Memory information (buffer and )
+
+* CPU clock: Sometimes clock for threads on some physical core differ --> I think this is in reality not possible. Maybe calculate average per physical core. Also group threads belonging to the same physical core together and "bond" visually.
+
+* Check if can be published under MIT license (Maybe some restrictions from pyqtgraph of pyqt5).
 
 * Add dark mode
-
-* Add GUI menu to modify parameters such as update interval, capture period
