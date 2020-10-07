@@ -1,5 +1,5 @@
 <p align="center" style="font-size:30px">
-<img src="media/output.gif" align="center">
+<img src="https://raw.githubusercontent.com/MatthiasSchinzel/sysmon/master/media/output.gif" align="center">
 </p>
 <p align="center" style="font-size:30px">
   <br>
@@ -7,11 +7,11 @@
   <br>
 </p>
 <p align="center">
-<a href="https://github.com/MatthiasSchinzel/CaRL/graphs/commit-activity">
+<a href="https://github.com/MatthiasSchinzel/CaRL/sysmon/commit-activity">
     <img src="https://img.shields.io/badge/Maintained%3F-yes-green.svg">
 </a>
-<a href="https://github.com/MatthiasSchinzel/CaRL/tags/">
-    <img src="https://img.shields.io/github/v/tag/MatthiasSchinzel/CaRL.svg?sort=semver">
+<a href="https://github.com/MatthiasSchinzel/sysmon/tags/">
+    <img src="https://img.shields.io/github/v/tag/MatthiasSchinzel/sysmon.svg?sort=semver">
 </a>
 <a href="https://github.com/MatthiasSchinzel">
     <img src="https://img.shields.io/badge/Need%20help%3F-Ask-27B89C">
@@ -25,7 +25,7 @@
   <a href="#getting-started">Getting Started</a>
 </p>
 
-<img src="media/optimized.gif" align="center">  
+<img src="https://raw.githubusercontent.com/MatthiasSchinzel/sysmon/master/media/optimized.gif" align="center">  
 <h2>
 Key features
 </h2>
@@ -101,3 +101,5 @@ I this choice of data source makes the program usable across multiple linux dist
 * Check if can be published under MIT license (Maybe some restrictions from pyqtgraph of pyqt5).
 
 * Add dark mode
+
+* Make a C/C++ port (probably lower recourse requirements)
