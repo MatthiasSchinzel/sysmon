@@ -245,7 +245,7 @@ class sysinfo:
         self.max_connection_speed = []
         self.wlan_flag = 0
         for adapter in self.pysical_adapters:
-            if 'wlan' not in adapter and 'wlp' not in adapter:
+            if 'wlan' not in adapter and 'wl' not in adapter:
                 ps = str(subprocess.Popen(
                     ['ethtool ' + adapter + ' | grep -i speed'],
                     stdout=subprocess.PIPE, shell=True)
