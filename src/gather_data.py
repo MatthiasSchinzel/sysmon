@@ -15,7 +15,8 @@ class NoMemoryInformation(Exception):
 class sysinfo:
     def __init__(self,):
         if not Path('/proc/stat').is_file():
-            raise NoCPUInformation('/proc/stat does not exist. Maybe you use a virtual machine?')
+            raise NoCPUInformation('/proc/stat does not exist. ' +
+                                   'Maybe you use a virtual machine?')
         if not Path('/proc/meminfo').is_file():
             raise NoMemoryInformation('/proc/meminfo does not exist.')
         self.lines = []
@@ -137,7 +138,8 @@ class sysinfo:
                     self.cached = int(cur_data[1])
 
     def get_running_processes(self, only_usr=True):
-        ps = str(subprocess.Popen(['ps', 'aux', '--sort=-pcpu'], stdout=subprocess.PIPE).communicate()[0])
+        ps = str(subprocess.Popen(['ps', 'aux', '--sort=-pcpu'],
+                                  stdout=subprocess.PIPE).communicate()[0])
         processes = ps.split('\\n')
         processes.pop(0)
         processes.pop(-1)
@@ -152,10 +154,12 @@ class sysinfo:
             cur_list.pop(4)
             if cur_list[0] == self.username and only_usr is True:
                 process.append(cur_list)
-                process[-1][2] = round(float(process[-1][2])/self.cpu_core_count, 1)
+                process[-1][2] = round(float(
+                                    process[-1][2])/self.cpu_core_count, 1)
             elif only_usr is False:
                 process.append(cur_list)
-                process[-1][2] = round(float(process[-1][2])/self.cpu_core_count, 1)
+                process[-1][2] = round(float(
+                                    process[-1][2])/self.cpu_core_count, 1)
             if counter > max:
                 break
             counter += 1
@@ -170,8 +174,9 @@ class sysinfo:
             self.nvidia_installed = 1
 
     def get_basic_info_nvidia_smi(self,):
-        ps = str(subprocess.Popen(['nvidia-smi', '-L'],
-                                  stdout=subprocess.PIPE).communicate()[0].decode("utf-8"))
+        ps = str(subprocess.Popen(
+            ['nvidia-smi', '-L'], stdout=subprocess.PIPE)
+            .communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(-1)
         self.gpu_num = len(processes)
@@ -193,14 +198,17 @@ class sysinfo:
         return smi_info
 
     def get_cpu_clock_speed(self,):
-        ps = str(subprocess.Popen(['cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        ps = str(subprocess.Popen(
+                ['cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'],
+                stdout=subprocess.PIPE, shell=True)
+                .communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(-1)
         lst = range(len(processes))
         lst = [str(x) for x in lst]
         lst.sort()
         lst = [int(x) for x in lst]
-        processes = [x for _, x in sorted(zip(lst,processes))]
+        processes = [x for _, x in sorted(zip(lst, processes))]
         for id, process in enumerate(processes):
             self.cpu_clock[id] = int(process)
 
@@ -216,7 +224,9 @@ class sysinfo:
                 self.pysical_cpu_core_count = cur_data[-1]
 
     def get_all_pysical_adapters(self,):
-        ps = str(subprocess.Popen(['ls -l /sys/class/net/'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        ps = str(subprocess.Popen(
+            ['ls -l /sys/class/net/'], stdout=subprocess.PIPE, shell=True)
+            .communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(0)
         processes.pop(-1)
@@ -236,22 +246,32 @@ class sysinfo:
         self.wlan_flag = 0
         for adapter in self.pysical_adapters:
             if 'wlan' not in adapter and 'wlp' not in adapter:
-                ps = str(subprocess.Popen(['ethtool ' + adapter + ' | grep -i speed'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+                ps = str(subprocess.Popen(
+                    ['ethtool ' + adapter + ' | grep -i speed'],
+                    stdout=subprocess.PIPE, shell=True)
+                    .communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
                 processes.pop(-1)
                 self.max_connection_speed.append(processes[-1]
-                                                 .replace('\tSpeed: ', '').replace('Mb/s', ' Mbit/s'))
+                                                 .replace('\tSpeed: ', '')
+                                                 .replace('Mb/s', ' Mbit/s'))
             else:
-                ps = str(subprocess.Popen(['iwconfig ' + adapter + ' | grep "Bit Rate"'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+                ps = str(subprocess.Popen(
+                    ['iwconfig ' + adapter + ' | grep "Bit Rate"'],
+                    stdout=subprocess.PIPE, shell=True)
+                    .communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
                 processes.pop(-1)
                 self.max_connection_speed.append(processes[-1].split()[1]
-                                                 .replace('Rate=', '') + ' Mbit/s')
+                                                 .replace('Rate=', '') +
+                                                 ' Mbit/s')
                 self.wlan_flag = 1
 
-
     def get_pysical_disks_and_size(self,):
-        ps = str(subprocess.Popen(['lsblk -b | grep -e ^NAME -e disk'], stdout=subprocess.PIPE, shell=True).communicate()[0].decode("utf-8"))
+        ps = str(subprocess.Popen(
+            ['lsblk -b | grep -e ^NAME -e disk'],
+            stdout=subprocess.PIPE, shell=True)
+            .communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(0)
         processes.pop(-1)
@@ -265,13 +285,17 @@ class sysinfo:
             self.amount_disks += 1
         for ind, size in enumerate(self.pysical_disk_size):
             if 'K' in size:
-                self.pysical_disk_size[ind] = float(size.replace('K', '').replace(',', '.')) * 1e3
+                self.pysical_disk_size[ind] = float(size.replace('K', '')
+                                                    .replace(',', '.')) * 1e3
             if 'M' in size:
-                self.pysical_disk_size[ind] = float(size.replace('M', '').replace(',', '.')) * 1e6
+                self.pysical_disk_size[ind] = float(size.replace('M', '')
+                                                    .replace(',', '.')) * 1e6
             if 'G' in size:
-                self.pysical_disk_size[ind] = float(size.replace('G', '').replace(',', '.')) * 1e9
+                self.pysical_disk_size[ind] = float(size.replace('G', '')
+                                                    .replace(',', '.')) * 1e9
             if 'T' in size:
-                self.pysical_disk_size[ind] = float(size.replace('T', '').replace(',', '.')) * 1e12
+                self.pysical_disk_size[ind] = float(size.replace('T', '')
+                                                    .replace(',', '.')) * 1e12
             else:
                 self.pysical_disk_size[ind] = int(size)
 
@@ -330,7 +354,8 @@ class sysinfo:
     def refresh_memory(self,):
         self.read_file('meminfo')
         self.parse_meminfo()
-        self.non_cached = self.memtotal - self.memfree - (self.buffers + self.cached)
+        cached = (self.buffers + self.cached)
+        self.non_cached = self.memtotal - self.memfree - cached
         return self.memtotal, self.non_cached, self.swaptotal, self.swapfree
 
     def refresh_disks(self,):
