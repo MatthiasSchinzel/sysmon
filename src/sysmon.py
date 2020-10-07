@@ -3,6 +3,7 @@ import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import sys
 import numpy as np
+import pathlib
 from gather_data import sysinfo
 
 
@@ -84,7 +85,8 @@ class MainWindow(QtWidgets.QMainWindow):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
         pg.setConfigOptions(antialias=True)
-        uic.loadUi('sysmonitor.ui', self)
+        uic.loadUi(str(pathlib.Path(__file__).parent.absolute()) +
+                   '/sysmonitor.ui', self)
 
         self.len_data = 60
         self.cpu_curve = []

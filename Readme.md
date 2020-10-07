@@ -66,6 +66,17 @@ python sysmon.py
 
 If you want to monitor your Nvidia GPU, nvidia-smi has to be installed.
 
+Probably you want some shortcut.
+First find the path of your python installation:
+```
+which python
+```
+and then the command would look like
+```
+path/to/python path/to/sysmon.py
+```
+If you want an icon I recommend installing alacarte for this. inside alacarte just click 'New Item', then Name: 'sysmon' and for command the command you found above.
+
 ### 2. Data origin
 
 Most data comes from the /proc directory.
