@@ -255,7 +255,7 @@ class sysinfo:
                 self.max_connection_speed.append(processes[-1] + ' Mbit/s')
             else:
                 ps = str(subprocess.Popen(
-                    ['cat /sys/class/net/' + adapter + '/wireless/link'],
+                    ['iwconfig ' + adapter + ' | grep "Bit Rate"'],
                     stdout=subprocess.PIPE, shell=True)
                     .communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
