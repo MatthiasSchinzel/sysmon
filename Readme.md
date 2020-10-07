@@ -3,7 +3,7 @@
 </p>
 <p align="center" style="font-size:30px">
   <br>
-  <img src="src/output.gif" align="center">
+  <img src="media/output.gif" align="center">
   <em>Linux activity monitor</em>
   <br>
 </p>
@@ -29,7 +29,7 @@
   <a href="#getting-started">Getting Started</a>
 </p>
 
-<img src="src/optimized.gif" align="center">  
+<img src="media/optimized.gif" align="center">  
 <h2>
 Key features
 </h2>
