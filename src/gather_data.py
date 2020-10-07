@@ -316,8 +316,8 @@ class sysinfo:
 
     def parse_network_info(self,):
         self.adapter_info = []
-        for line in self.lines:
-            for adapter in self.pysical_adapters:
+        for adapter in self.pysical_adapters:
+            for line in self.lines:
                 if adapter in line:
                     self.adapter_info.append(line.split())
 
