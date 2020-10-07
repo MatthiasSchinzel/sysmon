@@ -32,6 +32,7 @@ Key features
 
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 
+<img src="media/SysmonTwoadapter.png" align="right" width="40%">
 
 Graphical visualization of the following data:
 
@@ -67,7 +68,7 @@ python sysmon.py
 If you want to monitor your Nvidia GPU, nvidia-smi has to be installed.
 
 Probably you want some shortcut.
-First find the path of your python installation:
+To do so first find the path of your python installation:
 ```
 which python
 ```
@@ -105,12 +106,12 @@ I this choice of data source makes the program usable across multiple linux dist
 
 * Add iowait for each CPU core
 
-* Add more detailed Memory information (buffer and )
+* Add more detailed Memory information (buffer and cache)
 
-* CPU clock: Sometimes clock for threads on some physical core differ --> I think this is in reality not possible. Maybe calculate average per physical core. Also group threads belonging to the same physical core together and "bond" visually.
+* CPU clock: Sometimes clock for threads on same physical core differ --> I think this is in reality not possible. Maybe calculate average per physical core. Also group threads belonging to the same physical core together and "bond" visually.
 
 * Check if can be published under MIT license (Maybe some restrictions from pyqtgraph of pyqt5).
 
 * Add dark mode
 
-* Make a C/C++ port (probably lower recourse requirements)
+* Make a C/C++ port (probably lower hardware requirements, even though CPU load is low.)

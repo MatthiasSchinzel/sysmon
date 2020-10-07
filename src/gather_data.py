@@ -245,7 +245,7 @@ class sysinfo:
         self.max_connection_speed = []
         self.wlan_flag = 0
         for adapter in self.pysical_adapters:
-            if 'wlan' not in adapter and 'wl' not in adapter:
+            if 'wl' not in adapter:
                 ps = str(subprocess.Popen(
                     ['cat /sys/class/net/' + adapter + '/speed'],
                     stdout=subprocess.PIPE, shell=True)
