@@ -247,17 +247,15 @@ class sysinfo:
         for adapter in self.pysical_adapters:
             if 'wlan' not in adapter and 'wl' not in adapter:
                 ps = str(subprocess.Popen(
-                    ['ethtool ' + adapter + ' | grep -i speed'],
+                    ['cat /sys/class/net/' + adapter + '/speed'],
                     stdout=subprocess.PIPE, shell=True)
                     .communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
                 processes.pop(-1)
-                self.max_connection_speed.append(processes[-1]
-                                                 .replace('\tSpeed: ', '')
-                                                 .replace('Mb/s', ' Mbit/s'))
+                self.max_connection_speed.append(processes[-1] + ' Mbit/s')
             else:
                 ps = str(subprocess.Popen(
-                    ['iwconfig ' + adapter + ' | grep "Bit Rate"'],
+                    ['cat /sys/class/net/' + adapter + '/wireless/link'],
                     stdout=subprocess.PIPE, shell=True)
                     .communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
