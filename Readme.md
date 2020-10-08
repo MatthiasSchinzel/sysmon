@@ -86,7 +86,7 @@ In more detail:
 * CPU: /proc/cpuinfo and /proc/stat
 * Memory: /proc/meminfo
 * Disks: /proc/diskstats
-* Network: /proc/net/dev and ethtool(Ethernet)/iwconfig(Wlan)
+* Network: /proc/net/dev and iwconfig(Wlan)
 * GPU: nviida-smi (if Nvidia GPU)
 * Processes: 'ps -aux'
 
