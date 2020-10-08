@@ -4,6 +4,7 @@ from pyqtgraph.Qt import QtCore, QtGui
 import sys
 import numpy as np
 import pathlib
+import os
 from gather_data import sysinfo
 
 
@@ -583,6 +584,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def main():
+    os.environ['PATH'] = '/sbin:' + os.environ.get('PATH')
     app = QtWidgets.QApplication(sys.argv)
     main = MainWindow()
     main.show()
