@@ -309,9 +309,9 @@ class MainWindow(QtWidgets.QMainWindow):
     def plot_meminfo(self,):
         p = []
         memtotal, memoccup, swaptotal, swapfree = self.s.refresh_memory()
-        self.meminfo[-1, :] = np.array([memoccup / memtotal,
-                                       (swaptotal - swapfree)
-                                        / swaptotal]) * 100
+        # self.meminfo[-1, :] = np.array([memoccup / memtotal,
+        #                               (swaptotal - swapfree)
+        #                                / swaptotal]) * 100
         p.append(self.widget.addPlot())
         p[-1].setXRange(-self.len_data * self.wait_time_ms / 1000,
                         0, padding=0)
@@ -500,9 +500,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_meminfo(self,):
         self.meminfo = np.roll(self.meminfo, -1, axis=0)
         memtotal, memoccup, swaptotal, swapfree = self.s.refresh_memory()
-        self.meminfo[-1, :] = np.array([(memoccup) / memtotal,
-                                        (swaptotal - swapfree)
-                                        / swaptotal]) * 100
+        if swaptotal != 0:
+            self.meminfo[-1, :] = np.array([(memoccup) / memtotal,
+                                            (swaptotal - swapfree)
+                                            / swaptotal]) * 100
+        else:
+            self.meminfo[-1, :] = np.array([(memoccup) / memtotal,
+                                            0]) * 100
         self.mem_curve[0].setData(self.x, self.meminfo[:, 0])
         self.mem_curve[1].setData(self.x, self.meminfo[:, 1])
         self.label_5.setText(

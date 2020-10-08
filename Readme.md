@@ -32,7 +32,7 @@ Key features
 
 [![forthebadge made-with-python](http://ForTheBadge.com/images/badges/made-with-python.svg)](https://www.python.org/)
 
-<img src="media/SysmonTwoadapter.png" align="right" width="40%">
+<img src="https://raw.githubusercontent.com/MatthiasSchinzel/sysmon/master/media/SysmonTwoadapter.png" align="right" width="40%">
 
 Graphical visualization of the following data:
 
