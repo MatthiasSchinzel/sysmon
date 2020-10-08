@@ -267,10 +267,13 @@ class sysinfo:
                     stdout=subprocess.PIPE, shell=True)
                     .communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
-                processes.pop(-1)
-                self.max_connection_speed.append(processes[-1].split()[1]
+                if processes[0] != '':
+                    processes.pop(-1)
+                    self.max_connection_speed.append(processes[-1].split()[1]
                                                  .replace('Rate=', '') +
                                                  ' Mbit/s')
+                else:
+                    self.max_connection_speed.append(str(0))
                 self.wlan_flag = 1
 
     def get_pysical_disks_and_size(self,):
