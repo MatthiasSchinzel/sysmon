@@ -58,7 +58,7 @@ I wanted to have a graphical visualization of the load of most physical devices.
 
 Dependencies (Python 3):
 ```
-pip install pyqtgraph, pyqt5
+pip install pyqtgraph pyqt5
 ```
 clone the project and cd into src/. Then
 ```
