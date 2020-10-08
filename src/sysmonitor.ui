@@ -59,7 +59,7 @@
            <item>
             <widget class="QLabel" name="label_4">
              <property name="text">
-              <string>CPU Hisory:</string>
+              <string>CPU History:</string>
              </property>
             </widget>
            </item>

@@ -58,7 +58,7 @@ I wanted to have a graphical visualization of the load of most physical devices.
 
 Dependencies (Python 3):
 ```
-pip install pyqtgraph, pyqt5
+pip install pyqtgraph pyqt5
 ```
 clone the project and cd into src/. Then
 ```
@@ -115,3 +115,9 @@ I this choice of data source makes the program usable across multiple linux dist
 * Add dark mode
 
 * Make a C/C++ port (probably lower hardware requirements, even though CPU load is low.)
+
+* Remove Swap entry if no swap is used
+
+* Remove 'ps -aux' references
+
+* Add kill button and sort

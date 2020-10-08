@@ -172,6 +172,14 @@ class sysinfo:
         processes = ps.strip('\n')
         if processes:
             self.nvidia_installed = 1
+        ps = str(subprocess.Popen(
+            ['nvidia-smi'], stdout=subprocess.PIPE)
+            .communicate()[0].decode("utf-8"))
+        nvidia_smi_feedback = ps.strip('\n')
+        if 'failed' in nvidia_smi_feedback:
+            print('There seems to be a problem with your GPU. Disabling GPU' +
+                  'support. Please check nvidia-smi')
+            self.nvidia_installed = 0
 
     def get_basic_info_nvidia_smi(self,):
         ps = str(subprocess.Popen(
