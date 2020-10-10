@@ -110,8 +110,6 @@ I this choice of data source makes the program usable across multiple linux dist
 
 * CPU clock: Sometimes clock for threads on same physical core differ --> I think this is in reality not possible. Maybe calculate average per physical core. Also group threads belonging to the same physical core together and "bond" visually.
 
-* Check if can be published under MIT license (Maybe some restrictions from pyqtgraph of pyqt5).
-
 * Add dark mode
 
 * Make a C/C++ port (probably lower hardware requirements, even though CPU load is low.)

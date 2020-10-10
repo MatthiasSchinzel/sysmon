@@ -248,10 +248,14 @@ class sysinfo:
         self.rx_packets = np.zeros([self.amount_net_adater, 2])
         self.tx_bytes = np.zeros([self.amount_net_adater, 2])
         self.tx_packets = np.zeros([self.amount_net_adater, 2])
+        ps = str(subprocess.Popen(['command -v iwconfig'],
+                                  stdout=subprocess.PIPE,
+                                  shell=True).communicate()[
+                                  0].decode("utf-8"))
+        self.iwconfig_exist = ps.strip('\n')
 
     def get_max_connection_speed(self,):
         self.max_connection_speed = []
-        self.wlan_flag = 0
         for adapter in self.pysical_adapters:
             if 'wl' not in adapter:
                 ps = str(subprocess.Popen(
@@ -260,21 +264,28 @@ class sysinfo:
                     .communicate()[0].decode("utf-8"))
                 processes = ps.split('\n')
                 processes.pop(-1)
-                self.max_connection_speed.append(processes[-1] + ' Mbit/s')
+                self.max_connection_speed.append(processes[-1])
+                if self.max_connection_speed[-1] != '-1':
+                    self.max_connection_speed[-1] += ' Mbit/s'
             else:
-                ps = str(subprocess.Popen(
-                    ['iwconfig ' + adapter + ' | grep "Bit Rate"'],
-                    stdout=subprocess.PIPE, shell=True)
-                    .communicate()[0].decode("utf-8"))
-                processes = ps.split('\n')
-                if processes[0] != '':
-                    processes.pop(-1)
-                    self.max_connection_speed.append(processes[-1].split()[1]
-                                                 .replace('Rate=', '') +
-                                                 ' Mbit/s')
+                if self.iwconfig_exist:
+                    ps = str(subprocess.Popen(
+                        ['iwconfig ' + adapter + ' | grep "Bit Rate"'],
+                        stdout=subprocess.PIPE, shell=True)
+                        .communicate()[0].decode("utf-8"))
+                    processes = ps.split('\n')
+                    if processes[0] != '':
+                        processes.pop(-1)
+                        self.max_connection_speed.append(processes[
+                                                         -1].split()[
+                                                         1].replace(
+                                                         'Rate=', '') +
+                                                         ' Mbit/s')
+                    else:
+                        self.max_connection_speed.append(str(-1))
                 else:
-                    self.max_connection_speed.append(str(0))
-                self.wlan_flag = 1
+                    # wifi, but iwconfig not working
+                    self.max_connection_speed.append(str(-2))
 
     def get_pysical_disks_and_size(self,):
         ps = str(subprocess.Popen(
@@ -356,8 +367,7 @@ class sysinfo:
         self.read_file('net/dev')
         self.parse_network_info()
         self.process_network_info()
-        if self.wlan_flag == 1:
-            self.get_max_connection_speed()
+        self.get_max_connection_speed()
         return self.rx_bytes, self.tx_bytes, self.rx_packets, self.tx_packets
 
     def refresh_memory(self,):
