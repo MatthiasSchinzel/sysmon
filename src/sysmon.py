@@ -407,12 +407,29 @@ class MainWindow(QtWidgets.QMainWindow):
                 "</span1> <span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Tx: "
                 + val_2 +
                 '</span2></span>')
-            self.ti_net[adapter].setLabel(
-                'bottom', self.s.pysical_adapters[adapter] +
-                ' connected with ' + self.s.max_connection_speed[adapter] +
-                ', Total received: ' + bytes_to_bibyte(rx_bytes[adapter, 0]) +
-                ', Total transmitted: ' +
-                bytes_to_bibyte(tx_bytes[adapter, 0]))
+            if self.s.max_connection_speed[adapter] == '-1':
+                self.ti_net[adapter].setLabel(
+                    'bottom', self.s.pysical_adapters[adapter] +
+                    ' disconnected' +
+                    ', Total received: ' +
+                    bytes_to_bibyte(rx_bytes[adapter, 0]) +
+                    ', Total transmitted: ' +
+                    bytes_to_bibyte(tx_bytes[adapter, 0]))
+            elif self.s.max_connection_speed[adapter] == '-2':
+                self.ti_net[adapter].setLabel(
+                    'bottom', self.s.pysical_adapters[adapter] +
+                    ', Total received: ' +
+                    bytes_to_bibyte(rx_bytes[adapter, 0]) +
+                    ', Total transmitted: ' +
+                    bytes_to_bibyte(tx_bytes[adapter, 0]))
+            else:
+                self.ti_net[adapter].setLabel(
+                    'bottom', self.s.pysical_adapters[adapter] +
+                    ' connected with ' + self.s.max_connection_speed[adapter] +
+                    ', Total received: ' +
+                    bytes_to_bibyte(rx_bytes[adapter, 0]) +
+                    ', Total transmitted: ' +
+                    bytes_to_bibyte(tx_bytes[adapter, 0]))
             if ((self.netinfo[:, 0, adapter] * 8) < 1000).all() and \
                ((self.netinfo[:, 1, adapter] * 8) < 1000).all():
                 self.ti_net[adapter].enableAutoRange('y', False)
@@ -505,19 +522,20 @@ class MainWindow(QtWidgets.QMainWindow):
             self.meminfo[-1, :] = np.array([(memoccup) / memtotal,
                                             (swaptotal - swapfree)
                                             / swaptotal]) * 100
+            self.mem_curve[1].setData(self.x, self.meminfo[:, 1])
+            self.label_6.setText(
+                'Swap: ' + str(round((swaptotal - swapfree) / 1048576, 1)) +
+                'GiB of ' + str(round(swaptotal / 1048576, 1)) + 'GiB used (' +
+                str(round(self.meminfo[-1, 1], 1)) + '%)')
         else:
             self.meminfo[-1, :] = np.array([(memoccup) / memtotal,
                                             0]) * 100
+            self.label_6.setText('Swap not available')
         self.mem_curve[0].setData(self.x, self.meminfo[:, 0])
-        self.mem_curve[1].setData(self.x, self.meminfo[:, 1])
         self.label_5.setText(
             'Memory: ' + str(round(memoccup / 1048576, 1)) + 'GiB of ' +
             str(round(memtotal / 1048576, 1)) + 'GiB used (' +
             str(round(self.meminfo[-1, 0], 1)) + '%)')
-        self.label_6.setText(
-            'Swap: ' + str(round((swaptotal - swapfree) / 1048576, 1)) +
-            'GiB of ' + str(round(swaptotal / 1048576, 1)) + 'GiB used (' +
-            str(round(self.meminfo[-1, 1], 1)) + '%)')
 
     def update_gpuinfo(self,):
         self.gpuinfo = np.roll(self.gpuinfo, -1, axis=0)
