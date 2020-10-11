@@ -5,15 +5,15 @@ with open("../README.md", "r") as fh:
 
 setuptools.setup(
     name="sysmon",
-    version="0.0.1",
+    version="0.0.3",
     author="Matthias Schinzel",
-    author_email="???@???.com",
+    author_email="unused@unused.com",
     description="System Monitor for Linux",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/MatthiasSchinzel/sysmon",
     packages=setuptools.find_packages(),
-    entry_points = {
+    entry_points={
         'console_scripts': ['sysmon=sysmon.sysmon:main'],
     },
     classifiers=[
@@ -23,8 +23,10 @@ setuptools.setup(
     ],
     python_requires='>=3.6',
     install_requires=[
-        "pyqtgraph>=0.11.0", 
-        "pyqt5>=5.15.1"
+        "pyqtgraph",
+        "pyqt5>=5",
+        "numpy>=1"
     ],
     package_data={'sysmon': ['*.ui']},
+    include_package_data=True,
 )

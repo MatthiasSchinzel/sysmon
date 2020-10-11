@@ -56,27 +56,18 @@ I wanted to have a graphical visualization of the load of most physical devices.
 
 ### 1. Installation and run
 
-Dependencies (Python 3):
+Just simply
 ```
-pip install pyqtgraph pyqt5
+pip install sysmon
 ```
-clone the project and cd into src/. Then
+To run the program, just simply run in your cmd line
 ```
-python sysmon.py
+sysmon
 ```
 
 If you want to monitor your Nvidia GPU, nvidia-smi has to be installed.
 
-Probably you want some shortcut.
-To do so first find the path of your python installation:
-```
-which python
-```
-and then the command would look like
-```
-path/to/python path/to/sysmon.py
-```
-If you want an icon I recommend installing alacarte for this. inside alacarte just click 'New Item', then Name: 'sysmon' and for command the command you found above.
+Probably you want some shortcut, you can do this with alacarte.
 
 ### 2. Data origin
 
