@@ -5,7 +5,7 @@ with open("../README.md", "r") as fh:
 
 setuptools.setup(
     name="sysmon",
-    version="0.0.3",
+    version="1.0.0",
     author="Matthias Schinzel",
     author_email="unused@unused.com",
     description="System Monitor for Linux",
