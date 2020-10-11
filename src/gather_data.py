@@ -2,6 +2,8 @@ import numpy as np
 from pathlib import Path
 import subprocess
 import getpass
+import glob
+import os
 
 
 class NoCPUInformation(Exception):
@@ -206,19 +208,14 @@ class sysinfo:
         return smi_info
 
     def get_cpu_clock_speed(self,):
-        ps = str(subprocess.Popen(
-                ['cat /sys/devices/system/cpu/cpu*/cpufreq/scaling_cur_freq'],
-                stdout=subprocess.PIPE, shell=True)
-                .communicate()[0].decode("utf-8"))
-        processes = ps.split('\n')
-        processes.pop(-1)
-        lst = range(len(processes))
-        lst = [str(x) for x in lst]
-        lst.sort()
-        lst = [int(x) for x in lst]
-        processes = [x for _, x in sorted(zip(lst, processes))]
-        for id, process in enumerate(processes):
-            self.cpu_clock[id] = int(process)
+        for path in glob.glob('/sys/devices/system/cpu/cpu*/cpufreq'):
+            with open(os.path.join(path, 'affected_cpus'), 'r') as reader:
+                id = reader.read().strip()
+            if not id:
+                continue
+            with open(os.path.join(path, 'scaling_cur_freq'), 'r') as reader:
+                cpu_clock = int(reader.read())
+            self.cpu_clock[int(id)] = cpu_clock
 
     def parse_cpuinfo(self,):
         for line in self.lines:
