@@ -1,0 +1,21 @@
+name: sysmon build
+on:
+  push:
+    paths:
+    - "**"
+jobs:
+  package:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: pip3 install setuptools==50.3.0 
+    - run: pip3 install wheel==0.35.1
+    - run: make package
+    - uses: actions/upload-artifact@v2
+      with:
+        name: wheel
+        path: src/dist/*.whl
+    - uses: actions/upload-artifact@v2
+      with:
+        name: archive
+        path: src/dist/*.tar.gz

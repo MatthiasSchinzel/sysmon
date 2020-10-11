@@ -5,8 +5,8 @@ import sys
 import numpy as np
 import pathlib
 import os
-from gather_data import sysinfo
-
+from .gather_data import sysinfo
+import pkg_resources
 
 def bytes_to_bit(bytes, per_second_flag=0, r=2):
     if bytes * 8 > 1e12:
@@ -86,8 +86,7 @@ class MainWindow(QtWidgets.QMainWindow):
         pg.setConfigOption('background', 'w')
         pg.setConfigOption('foreground', 'k')
         pg.setConfigOptions(antialias=True)
-        uic.loadUi(str(pathlib.Path(__file__).parent.absolute()) +
-                   '/sysmonitor.ui', self)
+        uic.loadUi(pkg_resources.resource_filename(__name__,"sysmonitor.ui"),self)
 
         self.len_data = 60
         self.cpu_curve = []
