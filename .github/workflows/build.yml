@@ -1,0 +1,19 @@
+name: sysmon build
+on:
+  push:
+    paths:
+    - "**"
+jobs:
+  test:
+    runs-on: ubuntu-18.04
+    steps:
+    - uses: actions/checkout@v2
+    - run: make package
+    - uses: actions/upload-artifact@v2
+      with:
+        name: wheel
+        path: src/dist/*.whl
+    - uses: actions/upload-artifact@v2
+      with:
+        name: archive
+        path: src/dist/*.tar.gz
