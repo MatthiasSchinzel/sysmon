@@ -21,14 +21,14 @@ class sysinfo:
             raise NoMemoryInformation('/proc/meminfo does not exist.')
         self.lines = []
         self.cpu_core_count = 0
-        self.pysical_cpu_core_count = 0
+        self.physical_cpu_core_count = 0
         self.cpu_model_name = []
         self.previdle = 0
         self.previowait = 0
         self.amount_disks = 0
         self.read_file('stat')
         self.count_cpu_cores()
-        self.get_pysical_disks_and_size()
+        self.get_physical_disks_and_size()
         self.user = np.zeros([self.cpu_core_count+1, 2])
         self.nice = np.zeros([self.cpu_core_count+1, 2])
         self.system = np.zeros([self.cpu_core_count+1, 2])
@@ -55,7 +55,7 @@ class sysinfo:
         if self.nvidia_installed == 1:
             self.get_basic_info_nvidia_smi()
         self.get_cpuinfo()
-        self.get_all_pysical_adapters()
+        self.get_all_physical_adapters()
         self.get_max_connection_speed()
 
     def read_file(self, type):
@@ -229,20 +229,20 @@ class sysinfo:
                 self.cpu_model_name = line
             if "cpu cores" in line:
                 cur_data = line.split()
-                self.pysical_cpu_core_count = cur_data[-1]
+                self.physical_cpu_core_count = cur_data[-1]
 
-    def get_all_pysical_adapters(self,):
+    def get_all_physical_adapters(self,):
         ps = str(subprocess.Popen(
             ['ls -l /sys/class/net/'], stdout=subprocess.PIPE, shell=True)
             .communicate()[0].decode("utf-8"))
         processes = ps.split('\n')
         processes.pop(0)
         processes.pop(-1)
-        self.pysical_adapters = []
+        self.physical_adapters = []
         self.amount_net_adater = 0
         for line in processes:
             if 'virtual' not in line:
-                self.pysical_adapters.append(line.split()[8])
+                self.physical_adapters.append(line.split()[8])
                 self.amount_net_adater += 1
         self.rx_bytes = np.zeros([self.amount_net_adater, 2])
         self.rx_packets = np.zeros([self.amount_net_adater, 2])
@@ -256,7 +256,7 @@ class sysinfo:
 
     def get_max_connection_speed(self,):
         self.max_connection_speed = []
-        for adapter in self.pysical_adapters:
+        for adapter in self.physical_adapters:
             if 'wl' not in adapter:
                 ps = str(subprocess.Popen(
                     ['cat /sys/class/net/' + adapter + '/speed'],
@@ -287,7 +287,7 @@ class sysinfo:
                     # wifi, but iwconfig not working
                     self.max_connection_speed.append(str(-2))
 
-    def get_pysical_disks_and_size(self,):
+    def get_physical_disks_and_size(self,):
         ps = str(subprocess.Popen(
             ['lsblk -b | grep -e ^NAME -e disk'],
             stdout=subprocess.PIPE, shell=True)
@@ -295,33 +295,33 @@ class sysinfo:
         processes = ps.split('\n')
         processes.pop(0)
         processes.pop(-1)
-        self.pysical_disk = []
-        self.pysical_disk_size = []
+        self.physical_disk = []
+        self.physical_disk_size = []
         self.amount_disks = 0
         for line in processes:
             cur_line = line.split()
-            self.pysical_disk.append(cur_line[0])
-            self.pysical_disk_size.append(cur_line[3])
+            self.physical_disk.append(cur_line[0])
+            self.physical_disk_size.append(cur_line[3])
             self.amount_disks += 1
-        for ind, size in enumerate(self.pysical_disk_size):
+        for ind, size in enumerate(self.physical_disk_size):
             if 'K' in size:
-                self.pysical_disk_size[ind] = float(size.replace('K', '')
+                self.physical_disk_size[ind] = float(size.replace('K', '')
                                                     .replace(',', '.')) * 1e3
             if 'M' in size:
-                self.pysical_disk_size[ind] = float(size.replace('M', '')
+                self.physical_disk_size[ind] = float(size.replace('M', '')
                                                     .replace(',', '.')) * 1e6
             if 'G' in size:
-                self.pysical_disk_size[ind] = float(size.replace('G', '')
+                self.physical_disk_size[ind] = float(size.replace('G', '')
                                                     .replace(',', '.')) * 1e9
             if 'T' in size:
-                self.pysical_disk_size[ind] = float(size.replace('T', '')
+                self.physical_disk_size[ind] = float(size.replace('T', '')
                                                     .replace(',', '.')) * 1e12
             else:
-                self.pysical_disk_size[ind] = int(size)
+                self.physical_disk_size[ind] = int(size)
 
     def parse_disk_data(self,):
         self.disk_data = []
-        for disk in self.pysical_disk:
+        for disk in self.physical_disk:
             for line in self.lines:
                 cur_line = line.split(maxsplit=17)
                 if disk == cur_line[2]:
@@ -336,7 +336,7 @@ class sysinfo:
 
     def parse_network_info(self,):
         self.adapter_info = []
-        for adapter in self.pysical_adapters:
+        for adapter in self.physical_adapters:
             for line in self.lines:
                 if adapter in line:
                     self.adapter_info.append(line.split())

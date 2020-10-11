@@ -1,4 +1,5 @@
 from PyQt5 import QtWidgets, uic
+('str', 72)
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import sys
@@ -369,7 +370,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.widget_10.nextRow()
         self.update_netinfo()
         adapter_text = ''
-        for ind, adapter in enumerate(self.s.pysical_adapters):
+        for ind, adapter in enumerate(self.s.physical_adapters):
             adapter_text += adapter
             if ind + 1 != self.s.amount_net_adater:
                 adapter_text += ', '
@@ -406,7 +407,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 '</span2></span>')
             if self.s.max_connection_speed[adapter] == '-1':
                 self.ti_net[adapter].setLabel(
-                    'bottom', self.s.pysical_adapters[adapter] +
+                    'bottom', self.s.physical_adapters[adapter] +
                     ' disconnected' +
                     ', Total received: ' +
                     bytes_to_bibyte(rx_bytes[adapter, 0]) +
@@ -414,14 +415,14 @@ class MainWindow(QtWidgets.QMainWindow):
                     bytes_to_bibyte(tx_bytes[adapter, 0]))
             elif self.s.max_connection_speed[adapter] == '-2':
                 self.ti_net[adapter].setLabel(
-                    'bottom', self.s.pysical_adapters[adapter] +
+                    'bottom', self.s.physical_adapters[adapter] +
                     ', Total received: ' +
                     bytes_to_bibyte(rx_bytes[adapter, 0]) +
                     ', Total transmitted: ' +
                     bytes_to_bibyte(tx_bytes[adapter, 0]))
             else:
                 self.ti_net[adapter].setLabel(
-                    'bottom', self.s.pysical_adapters[adapter] +
+                    'bottom', self.s.physical_adapters[adapter] +
                     ' connected with ' + self.s.max_connection_speed[adapter] +
                     ', Total received: ' +
                     bytes_to_bibyte(rx_bytes[adapter, 0]) +
@@ -465,7 +466,7 @@ class MainWindow(QtWidgets.QMainWindow):
             self.widget_8.nextRow()
         self.update_diskinfo()
         disk_text = ''
-        for ind, disk in enumerate(self.s.pysical_disk):
+        for ind, disk in enumerate(self.s.physical_disk):
             disk_text += disk
             if ind + 1 != self.s.amount_disks:
                 disk_text += ', '
@@ -501,8 +502,8 @@ class MainWindow(QtWidgets.QMainWindow):
                 "<span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Write: "
                 + val_2 + '</span2></span>')
             self.ti_disk[disk].setLabel(
-                'bottom', self.s.pysical_disk[disk] + ' (' +
-                bytes_to_byte(self.s.pysical_disk_size[disk], r=0) + ')' +
+                'bottom', self.s.physical_disk[disk] + ' (' +
+                bytes_to_byte(self.s.physical_disk_size[disk], r=0) + ')' +
                 ', Total read: ' + bytes_to_byte(read_bytes[disk, 0]) +
                 ', Total write: ' + bytes_to_byte(write_bytes[disk, 0]))
             if (self.diskinfo[:, 0, disk] < 1000).all() and \
