@@ -8,6 +8,7 @@ jobs:
     runs-on: ubuntu-18.04
     steps:
     - uses: actions/checkout@v2
+    - run: pip3 install setuptools==50.3.0 
     - run: make package
     - uses: actions/upload-artifact@v2
       with:
