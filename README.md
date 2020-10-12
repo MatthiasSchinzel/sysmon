@@ -78,7 +78,7 @@ In more detail:
 * Memory: /proc/meminfo
 * Disks: /proc/diskstats
 * Network: /proc/net/dev and iwconfig(Wlan)
-* GPU: nviida-smi (if Nvidia GPU)
+* GPU: nvidia-smi (if Nvidia GPU)
 * Processes: 'ps -aux'
 
 I this choice of data source makes the program usable across multiple linux distributions. (Only tested on Ubuntu 18.04 and 20.04)
