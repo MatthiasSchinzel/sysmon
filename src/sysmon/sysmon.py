@@ -599,7 +599,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def main():
-    os.environ['PATH'] = '/sbin:' + os.environ.get('PATH')
+    os.environ['PATH'] = '/sbin:/usr/local/sbin:/usr/sbin:' + os.environ.get('PATH')
     app = QtWidgets.QApplication(sys.argv)
     main = MainWindow()
     main.show()
