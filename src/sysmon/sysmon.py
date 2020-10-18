@@ -1,5 +1,4 @@
 from PyQt5 import QtWidgets, uic
-('str', 72)
 import pyqtgraph as pg
 from pyqtgraph.Qt import QtCore, QtGui
 import sys
@@ -382,22 +381,23 @@ class MainWindow(QtWidgets.QMainWindow):
     def update_netinfo(self,):
         self.netinfo = np.roll(self.netinfo, -1, axis=0)
         rx_bytes, tx_bytes, rx_packets, tx_packets = self.s.refresh_network()
-        for adapter in range(self.s.amount_net_adater):
-            self.netinfo[-1, 0, adapter] = (
-                (rx_bytes[adapter, 0] - rx_bytes[adapter, 1])
+        for cur_adapter in self.s.current_adapters:
+            adapter_ind = self.s.physical_adapters.index(cur_adapter)
+            self.netinfo[-1, 0, adapter_ind] = (
+                (rx_bytes[adapter_ind, 0] - rx_bytes[adapter_ind, 1])
                 / (self.wait_time_ms / (1e3)))
-            self.netinfo[-1, 1, adapter] = (
-                (tx_bytes[adapter, 0] - tx_bytes[adapter, 1])
+            self.netinfo[-1, 1, adapter_ind] = (
+                (tx_bytes[adapter_ind, 0] - tx_bytes[adapter_ind, 1])
                 / (self.wait_time_ms / (1e3)))
-            self.net_curve[0 + 2 * adapter].setData(
-                self.x, self.netinfo[:, 0, adapter] * 8)
-            self.net_curve[1 + 2 * adapter].setData(
-                self.x, self.netinfo[:, 1, adapter] * 8)
+            self.net_curve[0 + 2 * adapter_ind].setData(
+                self.x, self.netinfo[:, 0, adapter_ind] * 8)
+            self.net_curve[1 + 2 * adapter_ind].setData(
+                self.x, self.netinfo[:, 1, adapter_ind] * 8)
             val_1 = "{:>13}".format(bytes_to_bit(
-                self.netinfo[-1, 0, adapter], 1)).replace(" ", "&nbsp;")
+                self.netinfo[-1, 0, adapter_ind], 1)).replace(" ", "&nbsp;")
             val_2 = "{:>13}".format(bytes_to_bit(
-                self.netinfo[-1, 1, adapter], 1)).replace(" ", "&nbsp;")
-            self.ti_net[adapter].setLabel(
+                self.netinfo[-1, 1, adapter_ind], 1)).replace(" ", "&nbsp;")
+            self.ti_net[adapter_ind].setLabel(
                 'top',
                 "<span style = \"font-family:consolas\">" +
                 "<span1 style=\"color:blue\">Rx: " +
@@ -405,35 +405,36 @@ class MainWindow(QtWidgets.QMainWindow):
                 "</span1> <span2 style=\"color:red\"> &nbsp;&nbsp;&nbsp;Tx: "
                 + val_2 +
                 '</span2></span>')
-            if self.s.max_connection_speed[adapter] == '-1':
-                self.ti_net[adapter].setLabel(
-                    'bottom', self.s.physical_adapters[adapter] +
+            if self.s.max_connection_speed[adapter_ind] == '-1':
+                self.ti_net[adapter_ind].setLabel(
+                    'bottom', self.s.physical_adapters[adapter_ind] +
                     ' disconnected' +
                     ', Total received: ' +
-                    bytes_to_bibyte(rx_bytes[adapter, 0]) +
+                    bytes_to_bibyte(rx_bytes[adapter_ind, 0]) +
                     ', Total transmitted: ' +
-                    bytes_to_bibyte(tx_bytes[adapter, 0]))
-            elif self.s.max_connection_speed[adapter] == '-2':
-                self.ti_net[adapter].setLabel(
-                    'bottom', self.s.physical_adapters[adapter] +
+                    bytes_to_bibyte(tx_bytes[adapter_ind, 0]))
+            elif self.s.max_connection_speed[adapter_ind] == '-2':
+                self.ti_net[adapter_ind].setLabel(
+                    'bottom', self.s.physical_adapters[adapter_ind] +
                     ', Total received: ' +
-                    bytes_to_bibyte(rx_bytes[adapter, 0]) +
+                    bytes_to_bibyte(rx_bytes[adapter_ind, 0]) +
                     ', Total transmitted: ' +
-                    bytes_to_bibyte(tx_bytes[adapter, 0]))
+                    bytes_to_bibyte(tx_bytes[adapter_ind, 0]))
             else:
-                self.ti_net[adapter].setLabel(
-                    'bottom', self.s.physical_adapters[adapter] +
-                    ' connected with ' + self.s.max_connection_speed[adapter] +
+                self.ti_net[adapter_ind].setLabel(
+                    'bottom', self.s.physical_adapters[adapter_ind] +
+                    ' connected with ' +
+                    self.s.max_connection_speed[adapter_ind] +
                     ', Total received: ' +
-                    bytes_to_bibyte(rx_bytes[adapter, 0]) +
+                    bytes_to_bibyte(rx_bytes[adapter_ind, 0]) +
                     ', Total transmitted: ' +
-                    bytes_to_bibyte(tx_bytes[adapter, 0]))
-            if ((self.netinfo[:, 0, adapter] * 8) < 1000).all() and \
-               ((self.netinfo[:, 1, adapter] * 8) < 1000).all():
-                self.ti_net[adapter].enableAutoRange('y', False)
-                self.ti_net[adapter].setYRange(0, 1000, padding=0)
+                    bytes_to_bibyte(tx_bytes[adapter_ind, 0]))
+            if ((self.netinfo[:, 0, adapter_ind] * 8) < 1000).all() and \
+               ((self.netinfo[:, 1, adapter_ind] * 8) < 1000).all():
+                self.ti_net[adapter_ind].enableAutoRange('y', False)
+                self.ti_net[adapter_ind].setYRange(0, 1000, padding=0)
             else:
-                self.ti_net[adapter].enableAutoRange('y', True)
+                self.ti_net[adapter_ind].enableAutoRange('y', True)
 
     def plot_diskinfo(self,):
         p = []
@@ -600,7 +601,8 @@ class MainWindow(QtWidgets.QMainWindow):
 
 
 def main():
-    os.environ['PATH'] = '/sbin:/usr/local/sbin:/usr/sbin:' + os.environ.get('PATH')
+    os.environ['PATH'] = ('/sbin:/usr/local/sbin:/usr/sbin:' +
+                          os.environ.get('PATH'))
     app = QtWidgets.QApplication(sys.argv)
     main = MainWindow()
     main.show()

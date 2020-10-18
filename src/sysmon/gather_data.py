@@ -255,15 +255,16 @@ class sysinfo:
         self.max_connection_speed = []
         for adapter in self.physical_adapters:
             if 'wl' not in adapter:
-                ps = str(subprocess.Popen(
-                    ['cat /sys/class/net/' + adapter + '/speed'],
-                    stdout=subprocess.PIPE, shell=True)
-                    .communicate()[0].decode("utf-8"))
-                processes = ps.split('\n')
-                processes.pop(-1)
-                self.max_connection_speed.append(processes[-1])
-                if self.max_connection_speed[-1] != '-1':
-                    self.max_connection_speed[-1] += ' Mbit/s'
+                try:
+                    with open('/sys/class/net/' + adapter +
+                              '/speed', 'r') as reader:
+                        speed = reader.read().strip()
+                    self.max_connection_speed.append(speed)
+                    if self.max_connection_speed[-1] != '-1':
+                        self.max_connection_speed[-1] += ' Mbit/s'
+                except IOError:
+                    # unable to get speed
+                    self.max_connection_speed.append(str(-2))
             else:
                 if self.iwconfig_exist:
                     ps = str(subprocess.Popen(
@@ -279,9 +280,10 @@ class sysinfo:
                                                          'Rate=', '') +
                                                          ' Mbit/s')
                     else:
+                        # disconnected
                         self.max_connection_speed.append(str(-1))
                 else:
-                    # wifi, but iwconfig not working
+                    # unable to get speed
                     self.max_connection_speed.append(str(-2))
 
     def get_physical_disks_and_size(self,):
@@ -303,16 +305,16 @@ class sysinfo:
         for ind, size in enumerate(self.physical_disk_size):
             if 'K' in size:
                 self.physical_disk_size[ind] = float(size.replace('K', '')
-                                                    .replace(',', '.')) * 1e3
+                                                     .replace(',', '.')) * 1e3
             if 'M' in size:
                 self.physical_disk_size[ind] = float(size.replace('M', '')
-                                                    .replace(',', '.')) * 1e6
+                                                     .replace(',', '.')) * 1e6
             if 'G' in size:
                 self.physical_disk_size[ind] = float(size.replace('G', '')
-                                                    .replace(',', '.')) * 1e9
+                                                     .replace(',', '.')) * 1e9
             if 'T' in size:
                 self.physical_disk_size[ind] = float(size.replace('T', '')
-                                                    .replace(',', '.')) * 1e12
+                                                     .replace(',', '.')) * 1e12
             else:
                 self.physical_disk_size[ind] = int(size)
 
@@ -333,21 +335,26 @@ class sysinfo:
 
     def parse_network_info(self,):
         self.adapter_info = []
+        self.current_adapters = []
         for adapter in self.physical_adapters:
             for line in self.lines:
                 if adapter in line:
                     self.adapter_info.append(line.split())
+                    self.current_adapters.append(adapter)
 
     def process_network_info(self,):
         self.rx_bytes = np.roll(self.rx_bytes, 1)
         self.rx_packets = np.roll(self.rx_packets, 1)
         self.tx_bytes = np.roll(self.tx_bytes, 1)
         self.tx_packets = np.roll(self.tx_packets, 1)
-        for ind in range(self.amount_net_adater):
-            self.rx_bytes[ind, 0] = self.adapter_info[ind][1]
-            self.rx_packets[ind, 0] = self.adapter_info[ind][2]
-            self.tx_bytes[ind, 0] = self.adapter_info[ind][9]
-            self.tx_packets[ind, 0] = self.adapter_info[ind][10]
+        for ind, adapter in enumerate(self.current_adapters):
+            try:
+                self.rx_bytes[ind, 0] = self.adapter_info[ind][1]
+                self.rx_packets[ind, 0] = self.adapter_info[ind][2]
+                self.tx_bytes[ind, 0] = self.adapter_info[ind][9]
+                self.tx_packets[ind, 0] = self.adapter_info[ind][10]
+            except ValueError:
+                print("Index error in process_network_info. Ignoring...")
 
     def get_cpuinfo(self,):
         self.read_file('cpuinfo')
