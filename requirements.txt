@@ -1,0 +1,6 @@
+python_version >= '3.6'
+PyQt5
+PyQt5-sip
+QtPy >= '1.9.0'
+pyqtgraph >= '0.11.0'
+numpy >= '1.16.4'
