@@ -126,7 +126,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer_4 = QtCore.QTimer()
         self.timer_4.timeout.connect(self.update_running_processes)
         self.timer_4.start(self.wait_time_ms)
-        if self.s.nvidia_installed == 1:
+        if self.s.nvidia_installed == 1 or self.s.amd_installed:
             self.gpu_widgets = []
             self.gpuinfo = np.zeros([self.len_data, 4, self.s.gpu_num])
             for gpu_ind in range(self.s.gpu_num):
@@ -160,8 +160,12 @@ class MainWindow(QtWidgets.QMainWindow):
                 label_2 = QtGui.QLabel("Memory:")
                 label_2_sub = QtGui.QLabel("% over 60 seconds")
                 label_2_sub.setFont(QtGui.QFont('Ubuntu', 7))
-                label_3 = QtGui.QLabel("Encoder:")
-                label_3_sub = QtGui.QLabel("% over 60 seconds")
+                if self.s.amd_installed:
+                    label_3 = QtGui.QLabel("Temperature:")
+                    label_3_sub = QtGui.QLabel("Celsius")
+                if self.s.nvidia_installed:
+                    label_3 = QtGui.QLabel("Encoder:")
+                    label_3_sub = QtGui.QLabel("% over 60 seconds")
                 label_3_sub.setFont(QtGui.QFont('Ubuntu', 7))
                 label_4 = QtGui.QLabel("Decoder:")
                 label_4_sub = QtGui.QLabel("% over 60 seconds")
@@ -538,32 +542,58 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_gpuinfo(self,):
         self.gpuinfo = np.roll(self.gpuinfo, -1, axis=0)
-        data = self.s.get_nvidia_smi_info()
-        for gpu_ind in range(self.s.gpu_num):
-            num = data[gpu_ind][4]
-            if num != '-':
-                self.gpuinfo[-1, 0, gpu_ind] = int(num)
-                self.gpu_curve[3 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 0, gpu_ind])
-            num = data[gpu_ind][5]
-            if num != '-':
-                self.gpuinfo[-1, 1, gpu_ind] = int(num)
-                self.gpu_curve[2 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 1, gpu_ind])
-            num = data[gpu_ind][6]
-            if num != '-':
-                self.gpuinfo[-1, 2, gpu_ind] = int(num)
-                self.gpu_curve[1 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 2, gpu_ind])
-            num = data[gpu_ind][7]
-            if num != '-':
-                self.gpuinfo[-1, 3, gpu_ind] = int(num)
-                self.gpu_curve[0 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 3, gpu_ind])
-            self.gpu_widgets[gpu_ind][-5].setText(
-                "Memory clock: " + str(int(data[gpu_ind][8])) + 'MHz')
-            self.gpu_widgets[gpu_ind][-6].setText(
-                "Gpu clock: " + str(int(data[gpu_ind][9])) + 'MHz')
+        if self.s.nvidia_installed:
+            data = self.s.get_nvidia_smi_info()
+            for gpu_ind in range(self.s.gpu_num):
+                num = data[gpu_ind][4]
+                if num != '-':
+                    self.gpuinfo[-1, 0, gpu_ind] = int(num)
+                    self.gpu_curve[3 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 0, gpu_ind])
+                num = data[gpu_ind][5]
+                if num != '-':
+                    self.gpuinfo[-1, 1, gpu_ind] = int(num)
+                    self.gpu_curve[2 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 1, gpu_ind])
+                num = data[gpu_ind][6]
+                if num != '-':
+                    self.gpuinfo[-1, 2, gpu_ind] = int(num)
+                    self.gpu_curve[1 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 2, gpu_ind])
+                num = data[gpu_ind][7]
+                if num != '-':
+                    self.gpuinfo[-1, 3, gpu_ind] = int(num)
+                    self.gpu_curve[0 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 3, gpu_ind])
+                self.gpu_widgets[gpu_ind][-5].setText(
+                    "Memory clock: " + str(int(data[gpu_ind][8])) + 'MHz')
+                self.gpu_widgets[gpu_ind][-6].setText(
+                    "Gpu clock: " + str(int(data[gpu_ind][9])) + 'MHz')
+        if self.s.amd_installed:
+            data = self.s.get_info_amd()
+            for gpu_ind in range(self.s.amd_installed):
+                mem_clock_text = 'Memory clock: ' + str(data[gpu_ind]['mem_clock']/1000000) + 'MHz'
+                gpu_clock_text = "Shader clock: " + str(data[gpu_ind]['shader_clock']/1000000) + 'MHz'
+                power_text = "Power : " + str(data[gpu_ind]['power']) + 'W'
+                clock_text = mem_clock_text + '\n' + gpu_clock_text
+                # Load percent
+                load = data[gpu_ind]['load'] * 100
+                self.gpuinfo[-1, 0, gpu_ind] = load
+                self.gpu_curve[3+4*gpu_ind].setData(self.x, self.gpuinfo[:, 0, gpu_ind])
+
+                # Memory usage
+                memory_usage = data[gpu_ind]['vram_percent']
+                self.gpuinfo[-1, 1, gpu_ind] = memory_usage
+                self.gpu_curve[2+4*gpu_ind].setData(self.x, self.gpuinfo[:, 1, gpu_ind])
+
+                # Temperature
+                temp = data[gpu_ind]['temp']
+                self.gpuinfo[-1, 2, gpu_ind] = temp
+                self.gpu_curve[1+4*gpu_ind].setData(self.x, self.gpuinfo[:, 2, gpu_ind])
+
+                # Extra info
+                self.gpu_widgets[gpu_ind][-5].setText(power_text)
+                self.gpu_widgets[gpu_ind][-6].setText(clock_text)
 
     def update_cpuinfo(self,):
         self.cpuinfo = np.roll(self.cpuinfo, -1, axis=0)

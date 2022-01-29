@@ -4,7 +4,13 @@ import subprocess
 import getpass
 import glob
 import os
-
+try:
+    import pyamdgpuinfo
+except:
+    print(
+        "pyamdgpuinfo not installed. Please install it with: 'pip3 install pyamdgpuinfo' for AMD GPUs."
+    )
+    pyamdgpuinfo = None
 
 class NoCPUInformation(Exception):
     pass
@@ -51,11 +57,16 @@ class sysinfo:
         self.swapfree = 0
         self.username = getpass.getuser()
         self.nvidia_installed = 0
+        self.amd_installed = 0
         self.gpu_num = 0
         self.gpu_name = []
         self.check_for_nvidia_smi()
         if self.nvidia_installed == 1:
             self.get_basic_info_nvidia_smi()
+        if pyamdgpuinfo:
+            self.check_for_amd()
+        if self.amd_installed:
+            self.get_basic_info_amd()
         self.get_cpuinfo()
         self.get_all_physical_adapters()
         self.get_max_connection_speed()
@@ -167,6 +178,7 @@ class sysinfo:
             counter += 1
         return process
 
+
     def check_for_nvidia_smi(self,):
         ps = str(subprocess.Popen(['command -v nvidia-smi'],
                                   stdout=subprocess.PIPE,
@@ -206,6 +218,41 @@ class sysinfo:
         for cur_process in processes:
             smi_info.append([j for j in cur_process.split(maxsplit=9)])
         return smi_info
+
+    def check_for_amd(self,):
+        self.amd_installed = pyamdgpuinfo.detect_gpus()
+
+    def get_basic_info_amd(self,):
+        amd_detected = self.amd_installed
+        self.gpu_num += amd_detected
+        for device in range(amd_detected):
+            gpu_info = pyamdgpuinfo.get_gpu(device)
+            if gpu_info.name:
+                device_name = gpu_info.name
+            else:
+                device_name = 'AMD unknown'
+            device_nice_name = device_name + ':' + str(gpu_info.gpu_id)
+            self.gpu_name.append(device_nice_name)
+
+    def get_info_amd(self,):
+        all_amd_info = []
+        for device in range(self.amd_installed):
+            gpu_info = pyamdgpuinfo.get_gpu(device)
+            vram_usage = gpu_info.query_vram_usage()
+            total_vram = gpu_info.memory_info['vram_size']
+            vram_percent = 100 * vram_usage / total_vram
+            amd_stats_info = {
+                'load': gpu_info.query_load(),
+                'vram_usage': vram_usage,
+                'temp': gpu_info.query_temperature(),
+                'mem_clock': gpu_info.query_mclk(),
+                'shader_clock': gpu_info.query_sclk(),
+                'power': gpu_info.query_power(),
+                'total_vram': total_vram,
+                'vram_percent': vram_percent,
+            }
+            all_amd_info.append(amd_stats_info)
+        return all_amd_info
 
     def get_cpu_clock_speed(self,):
         for path in glob.glob('/sys/devices/system/cpu/cpu*/cpufreq'):
