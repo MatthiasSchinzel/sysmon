@@ -6,6 +6,9 @@ import numpy as np
 import os
 from .gather_data import sysinfo
 import pkg_resources
+import qdarktheme
+
+SYSMON_THEME = os.getenv('SYSMON_THEME', 'default')
 
 
 def bytes_to_bit(bytes, per_second_flag=0, r=2):
@@ -83,8 +86,13 @@ def bytes_to_bibyte(bytes, per_second_flag=0, r=2):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        pg.setConfigOption('background', 'w')
-        pg.setConfigOption('foreground', 'k')
+        if SYSMON_THEME == 'dark':
+            pg.setConfigOption('background', 0.125)
+            pg.setConfigOption('foreground', 'w')
+
+        else:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
         pg.setConfigOptions(antialias=True)
         uic.loadUi(pkg_resources.resource_filename(__name__,
                                                    "sysmonitor.ui"), self)
@@ -634,7 +642,18 @@ def main():
     os.environ['PATH'] = ('/sbin:/usr/local/sbin:/usr/sbin:' +
                           os.environ.get('PATH'))
     app = QtWidgets.QApplication(sys.argv)
+
+    # Theme
+    if SYSMON_THEME == 'dark':
+        app.setStyleSheet(qdarktheme.load_stylesheet())
+    elif SYSMON_THEME == 'light' or SYSMON_THEME == 'default':
+        app.setStyleSheet(qdarktheme.load_stylesheet('light'))
+    elif SYSMON_THEME == 'old':
+        # Do nothing and get the old theme
+        # Also works for unknown SYSMON_THEME env
+        pass
     main = MainWindow()
+
     main.show()
     sys.exit(app.exec_())
 
