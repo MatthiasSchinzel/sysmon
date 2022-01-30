@@ -240,7 +240,10 @@ class sysinfo:
             gpu_info = pyamdgpuinfo.get_gpu(device)
             vram_usage = gpu_info.query_vram_usage()
             total_vram = gpu_info.memory_info['vram_size']
+            max_clocks = gpu_info.query_max_clocks()
             vram_percent = 100 * vram_usage / total_vram
+            shader_clock = gpu_info.query_sclk()
+            shader_percent = 100* shader_clock / max_clocks['sclk_max']
             amd_stats_info = {
                 'load': gpu_info.query_load(),
                 'vram_usage': vram_usage,
@@ -250,6 +253,8 @@ class sysinfo:
                 'power': gpu_info.query_power(),
                 'total_vram': total_vram,
                 'vram_percent': vram_percent,
+                'max_clocks': max_clocks,
+                'shader_percent': shader_percent,
             }
             all_amd_info.append(amd_stats_info)
         return all_amd_info
