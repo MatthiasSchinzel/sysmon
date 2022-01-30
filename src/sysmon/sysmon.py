@@ -6,6 +6,9 @@ import numpy as np
 import os
 from .gather_data import sysinfo
 import pkg_resources
+import qdarktheme
+
+SYSMON_THEME = os.getenv('SYSMON_THEME', 'default')
 
 
 def bytes_to_bit(bytes, per_second_flag=0, r=2):
@@ -83,8 +86,13 @@ def bytes_to_bibyte(bytes, per_second_flag=0, r=2):
 class MainWindow(QtWidgets.QMainWindow):
     def __init__(self, *args, **kwargs):
         super(MainWindow, self).__init__(*args, **kwargs)
-        pg.setConfigOption('background', 'w')
-        pg.setConfigOption('foreground', 'k')
+        if SYSMON_THEME == 'dark':
+            pg.setConfigOption('background', 0.125)
+            pg.setConfigOption('foreground', 'w')
+
+        else:
+            pg.setConfigOption('background', 'w')
+            pg.setConfigOption('foreground', 'k')
         pg.setConfigOptions(antialias=True)
         uic.loadUi(pkg_resources.resource_filename(__name__,
                                                    "sysmonitor.ui"), self)
@@ -126,7 +134,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.timer_4 = QtCore.QTimer()
         self.timer_4.timeout.connect(self.update_running_processes)
         self.timer_4.start(self.wait_time_ms)
-        if self.s.nvidia_installed == 1:
+        if self.s.nvidia_installed == 1 or self.s.amd_installed:
             self.gpu_widgets = []
             self.gpuinfo = np.zeros([self.len_data, 4, self.s.gpu_num])
             for gpu_ind in range(self.s.gpu_num):
@@ -154,16 +162,23 @@ class MainWindow(QtWidgets.QMainWindow):
                 hbox_4 = QtGui.QGridLayout(widget_4)
                 hbox_5 = QtGui.QGridLayout(widget_5)
 
-                label_1 = QtGui.QLabel("Gpu:")
+                label_1 = QtGui.QLabel("GPU:")
                 label_1_sub = QtGui.QLabel("% over 60 seconds")
                 label_1_sub.setFont(QtGui.QFont('Ubuntu', 7))
                 label_2 = QtGui.QLabel("Memory:")
                 label_2_sub = QtGui.QLabel("% over 60 seconds")
                 label_2_sub.setFont(QtGui.QFont('Ubuntu', 7))
-                label_3 = QtGui.QLabel("Encoder:")
-                label_3_sub = QtGui.QLabel("% over 60 seconds")
+                if self.s.amd_installed:
+                    label_3 = QtGui.QLabel("Temperature:")
+                    label_3_sub = QtGui.QLabel("Celsius")
+                if self.s.nvidia_installed:
+                    label_3 = QtGui.QLabel("Encoder:")
+                    label_3_sub = QtGui.QLabel("% over 60 seconds")
                 label_3_sub.setFont(QtGui.QFont('Ubuntu', 7))
-                label_4 = QtGui.QLabel("Decoder:")
+                if self.s.amd_installed:
+                    label_4 = QtGui.QLabel("Shader Clock:")
+                if self.s.nvidia_installed:
+                    label_4 = QtGui.QLabel("Decoder:")
                 label_4_sub = QtGui.QLabel("% over 60 seconds")
                 label_4_sub.setFont(QtGui.QFont('Ubuntu', 7))
                 label_5 = QtGui.QLabel("Gpu clock:")
@@ -538,32 +553,63 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def update_gpuinfo(self,):
         self.gpuinfo = np.roll(self.gpuinfo, -1, axis=0)
-        data = self.s.get_nvidia_smi_info()
-        for gpu_ind in range(self.s.gpu_num):
-            num = data[gpu_ind][4]
-            if num != '-':
-                self.gpuinfo[-1, 0, gpu_ind] = int(num)
-                self.gpu_curve[3 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 0, gpu_ind])
-            num = data[gpu_ind][5]
-            if num != '-':
-                self.gpuinfo[-1, 1, gpu_ind] = int(num)
-                self.gpu_curve[2 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 1, gpu_ind])
-            num = data[gpu_ind][6]
-            if num != '-':
-                self.gpuinfo[-1, 2, gpu_ind] = int(num)
-                self.gpu_curve[1 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 2, gpu_ind])
-            num = data[gpu_ind][7]
-            if num != '-':
-                self.gpuinfo[-1, 3, gpu_ind] = int(num)
-                self.gpu_curve[0 + 4 * gpu_ind].setData(
-                    self.x, self.gpuinfo[:, 3, gpu_ind])
-            self.gpu_widgets[gpu_ind][-5].setText(
-                "Memory clock: " + str(int(data[gpu_ind][8])) + 'MHz')
-            self.gpu_widgets[gpu_ind][-6].setText(
-                "Gpu clock: " + str(int(data[gpu_ind][9])) + 'MHz')
+        if self.s.nvidia_installed:
+            data = self.s.get_nvidia_smi_info()
+            for gpu_ind in range(self.s.gpu_num):
+                num = data[gpu_ind][4]
+                if num != '-':
+                    self.gpuinfo[-1, 0, gpu_ind] = int(num)
+                    self.gpu_curve[3 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 0, gpu_ind])
+                num = data[gpu_ind][5]
+                if num != '-':
+                    self.gpuinfo[-1, 1, gpu_ind] = int(num)
+                    self.gpu_curve[2 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 1, gpu_ind])
+                num = data[gpu_ind][6]
+                if num != '-':
+                    self.gpuinfo[-1, 2, gpu_ind] = int(num)
+                    self.gpu_curve[1 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 2, gpu_ind])
+                num = data[gpu_ind][7]
+                if num != '-':
+                    self.gpuinfo[-1, 3, gpu_ind] = int(num)
+                    self.gpu_curve[0 + 4 * gpu_ind].setData(
+                        self.x, self.gpuinfo[:, 3, gpu_ind])
+                self.gpu_widgets[gpu_ind][-5].setText(
+                    "Memory clock: " + str(int(data[gpu_ind][8])) + 'MHz')
+                self.gpu_widgets[gpu_ind][-6].setText(
+                    "Gpu clock: " + str(int(data[gpu_ind][9])) + 'MHz')
+        if self.s.amd_installed:
+            data = self.s.get_info_amd()
+            for gpu_ind in range(self.s.amd_installed):
+                mem_clock_text = 'Memory clock: ' + str(data[gpu_ind]['mem_clock']/1000000) + 'MHz'
+                gpu_clock_text = "Max shader clock: " + str(data[gpu_ind]['max_clocks']['sclk_max']/1000000) + 'MHz'
+                power_text = "Power : " + str(data[gpu_ind]['power']) + 'W'
+                clock_text = mem_clock_text + '\n' + gpu_clock_text
+                # Load percent
+                load = data[gpu_ind]['load'] * 100
+                self.gpuinfo[-1, 0, gpu_ind] = load
+                self.gpu_curve[3+4*gpu_ind].setData(self.x, self.gpuinfo[:, 0, gpu_ind])
+
+                # Memory usage
+                memory_usage = data[gpu_ind]['vram_percent']
+                self.gpuinfo[-1, 1, gpu_ind] = memory_usage
+                self.gpu_curve[2+4*gpu_ind].setData(self.x, self.gpuinfo[:, 1, gpu_ind])
+
+                # Temperature
+                temp = data[gpu_ind]['temp']
+                self.gpuinfo[-1, 2, gpu_ind] = temp
+                self.gpu_curve[1+4*gpu_ind].setData(self.x, self.gpuinfo[:, 2, gpu_ind])
+
+                # Shader clock
+                shader_percent = data[gpu_ind]['shader_percent']
+                self.gpuinfo[-1, 3, gpu_ind] = shader_percent
+                self.gpu_curve[0+4*gpu_ind].setData(self.x, self.gpuinfo[:, 3, gpu_ind])
+
+                # Extra info
+                self.gpu_widgets[gpu_ind][-5].setText(power_text)
+                self.gpu_widgets[gpu_ind][-6].setText(clock_text)
 
     def update_cpuinfo(self,):
         self.cpuinfo = np.roll(self.cpuinfo, -1, axis=0)
@@ -604,7 +650,18 @@ def main():
     os.environ['PATH'] = ('/sbin:/usr/local/sbin:/usr/sbin:' +
                           os.environ.get('PATH'))
     app = QtWidgets.QApplication(sys.argv)
+
+    # Theme
+    if SYSMON_THEME == 'dark':
+        app.setStyleSheet(qdarktheme.load_stylesheet())
+    elif SYSMON_THEME == 'light' or SYSMON_THEME == 'default':
+        app.setStyleSheet(qdarktheme.load_stylesheet('light'))
+    elif SYSMON_THEME == 'old':
+        # Do nothing and get the old theme
+        # Also works for unknown SYSMON_THEME env
+        pass
     main = MainWindow()
+
     main.show()
     sys.exit(app.exec_())
 
