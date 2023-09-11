@@ -116,11 +116,11 @@ class MainWindow(QtWidgets.QMainWindow):
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.horizontalHeader().setHighlightSections(False)
         header = self.tableWidget.horizontalHeader()
-        header.setResizeMode(QtGui.QHeaderView.ResizeToContents)
+        header.setSectionResizeMode(QtWidgets.QHeaderView.ResizeToContents)
         header.setStretchLastSection(True)
-        header.setResizeMode(False)
+        header.setSectionResizeMode(False)
         self.tableWidget.setSelectionBehavior(
-            QtGui.QAbstractItemView.SelectRows)
+            QtWidgets.QAbstractItemView.SelectRows)
         self.tableWidget.setShowGrid(False)
         self.update_running_processes()
         self.timer_4 = QtCore.QTimer()
@@ -592,10 +592,10 @@ class MainWindow(QtWidgets.QMainWindow):
                     item.setData(QtCore.Qt.DisplayRole,
                                  float(data[row][column]))
                     self.tableWidget.setItem(row, column,
-                                             QtGui.QTableWidgetItem(item))
+                                             QtWidgets.QTableWidgetItem(item))
                 else:
                     self.tableWidget.setItem(row, column,
-                                             QtGui.QTableWidgetItem(data[row]
+                                             QtWidgets.QTableWidgetItem(data[row]
                                                                     [column]))
         self.tableWidget.setHorizontalHeaderLabels(self.headertitle)
 
